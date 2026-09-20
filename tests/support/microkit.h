@@ -5,6 +5,17 @@
 #include <assert.h>
 #include <stdint.h>
 typedef unsigned microkit_channel;
+#ifdef TCS_TEST_FAULT_ROUTER
+typedef unsigned microkit_child;
+typedef unsigned seL4_Bool;
+#define seL4_False 0u
+enum { seL4_Fault_VMFault = 6, seL4_VMFault_IP = 0, seL4_VMFault_Addr = 1,
+       seL4_VMFault_PrefetchFault = 2, seL4_VMFault_FSR = 3, seL4_VMFault_Length = 4 };
+static void test_pd_stop(microkit_child child);
+static void test_pd_resume(microkit_child child);
+static inline void microkit_pd_stop(microkit_child child) { test_pd_stop(child); }
+static inline void microkit_pd_resume(microkit_child child) { test_pd_resume(child); }
+#endif
 typedef struct { uint64_t label, count; } microkit_msginfo;
 static uint64_t test_mrs[64];
 static unsigned test_notifications, test_acks;

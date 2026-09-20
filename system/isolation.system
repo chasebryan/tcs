@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test-only: observer owns six probe TCBs and sees a read-only canary page. -->
+<system>
+    <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+    <memory_region name="isolation_canary" size="0x1000" />
+    <memory_region name="isolation_nx" size="0x1000" />
+    <protection_domain name="terminal" priority="10" budget="10000" period="10000">
+        <program_image path="isolation_observer.elf" />
+        <map mr="isolation_canary" vaddr="0x6000000" perms="r" cached="true" setvar_vaddr="isolation_canary_vaddr" />
+        <protection_domain name="probe1" priority="9" budget="10000" period="10000" id="1">
+            <program_image path="probe1.elf" />
+        </protection_domain>
+        <protection_domain name="probe2" priority="8" budget="10000" period="10000" id="2">
+            <program_image path="probe2.elf" />
+        </protection_domain>
+        <protection_domain name="probe3" priority="7" budget="10000" period="10000" id="3">
+            <program_image path="probe3.elf" />
+        </protection_domain>
+        <protection_domain name="probe4" priority="6" budget="10000" period="10000" id="4">
+            <program_image path="probe4.elf" />
+        </protection_domain>
+        <protection_domain name="probe5" priority="5" budget="10000" period="10000" id="5">
+            <program_image path="probe5.elf" />
+            <map mr="isolation_canary" vaddr="0x6000000" perms="r" cached="true" />
+        </protection_domain>
+        <protection_domain name="probe6" priority="4" budget="10000" period="10000" id="6">
+            <program_image path="probe6.elf" />
+            <map mr="isolation_nx" vaddr="0x7000000" perms="rw" cached="true" />
+        </protection_domain>
+    </protection_domain>
+    <protection_domain name="client" priority="20" budget="10000" period="10000">
+        <program_image path="client.elf" />
+    </protection_domain>
+    <protection_domain name="storage" priority="30" budget="10000" period="10000">
+        <program_image path="storage.elf" />
+    </protection_domain>
+    <protection_domain name="policy" priority="40" budget="10000" period="10000">
+        <program_image path="isolation_policy.elf" />
+        <map mr="isolation_canary" vaddr="0x5000000" perms="rw" cached="true" setvar_vaddr="isolation_canary_vaddr" />
+    </protection_domain>
+    <protection_domain name="audit" priority="50" budget="10000" period="10000">
+        <program_image path="audit.elf" />
+    </protection_domain>
+    <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+    </protection_domain>
+    <channel>
+        <end pd="terminal" id="0" pp="true" notify="false" />
+        <end pd="serial" id="1" notify="true" />
+    </channel>
+    <channel>
+        <end pd="terminal" id="1" pp="true" notify="false" />
+        <end pd="client" id="0" notify="false" />
+    </channel>
+    <channel>
+        <end pd="client" id="1" pp="true" notify="false" />
+        <end pd="storage" id="0" notify="false" />
+    </channel>
+    <channel>
+        <end pd="storage" id="1" pp="true" notify="false" />
+        <end pd="policy" id="1" notify="false" />
+    </channel>
+    <channel>
+        <end pd="policy" id="2" pp="true" notify="false" />
+        <end pd="audit" id="0" notify="false" />
+    </channel>
+</system>

@@ -34,12 +34,54 @@ def attributes(element, required, optional=()):
             "unexpected " + element.tag + " attribute")
 
 
+def isolation_base(root):
+    """Remove only the exact test-only additions, then validate the base graph."""
+    def shape(element):
+        return (element.tag, element.attrib, (element.text or "").strip(),
+                (element.tail or "").strip(), [shape(e) for e in element])
+
+    def remove(parent, tag, expected):
+        elements = parent.findall(tag)
+        require(len(elements) == len(expected), "unexpected isolation " + tag + " count")
+        for actual, wanted in zip(elements, expected):
+            require(shape(actual) == shape(ET.fromstring(wanted)), "unexpected isolation " + tag)
+            parent.remove(actual)
+
+    regions = root.findall("memory_region")
+    require(len(regions) == 3, "isolation requires exactly three regions")
+    for element, name in zip(regions[1:], ("isolation_canary", "isolation_nx")):
+        require(shape(element) == shape(ET.fromstring(
+            f'<memory_region name="{name}" size="0x1000" />')), "unexpected isolation region")
+        root.remove(element)
+    terminal = root.find("protection_domain[@name='terminal']")
+    policy = root.find("protection_domain[@name='policy']")
+    require(terminal is not None and policy is not None, "missing isolation owner/observer")
+    for pd, role in ((terminal, "observer"), (policy, "policy")):
+        images = pd.findall("program_image")
+        require(len(images) == 1 and shape(images[0]) == shape(ET.fromstring(
+            f'<program_image path="isolation_{role}.elf" />')), "unexpected isolation image")
+        images[0].set("path", pd.attrib["name"] + ".elf")
+    remove(terminal, "map", ['<map mr="isolation_canary" vaddr="0x6000000" perms="r" cached="true" setvar_vaddr="isolation_canary_vaddr" />'])
+    remove(policy, "map", ['<map mr="isolation_canary" vaddr="0x5000000" perms="rw" cached="true" setvar_vaddr="isolation_canary_vaddr" />'])
+    children = []
+    for i in range(1, 7):
+        mapping = ''
+        if i == 5:
+            mapping = '<map mr="isolation_canary" vaddr="0x6000000" perms="r" cached="true" />'
+        if i == 6:
+            mapping = '<map mr="isolation_nx" vaddr="0x7000000" perms="rw" cached="true" />'
+        children.append(f'<protection_domain name="probe{i}" priority="{10-i}" budget="10000" period="10000" id="{i}"><program_image path="probe{i}.elf" />{mapping}</protection_domain>')
+    remove(terminal, "protection_domain", children)
+
+
 def validate(path, profile="seed"):
-    require(profile in {"seed", "terminal"}, "unknown system profile")
-    terminal = profile == "terminal"
+    require(profile in {"seed", "terminal", "isolation"}, "unknown system profile")
+    terminal = profile != "seed"
     domains = TERMINAL_DOMAINS if terminal else DOMAINS
     expected_edges = TERMINAL_EDGES if terminal else EDGES
     root = ET.parse(path).getroot()
+    if profile == "isolation":
+        isolation_base(root)
     require(root.tag == "system" and not root.attrib, "unexpected system root")
     allowed = {"protection_domain", "channel"} | ({"memory_region"} if terminal else set())
     require(all(child.tag in allowed for child in root),
@@ -108,7 +150,7 @@ def validate(path, profile="seed"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path")
-    parser.add_argument("--profile", choices=("seed", "terminal"), default="seed")
+    parser.add_argument("--profile", choices=("seed", "terminal", "isolation"), default="seed")
     args = parser.parse_args()
     try:
         validate(args.path, args.profile)

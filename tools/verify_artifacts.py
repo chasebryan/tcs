@@ -49,7 +49,14 @@ def main():
             release.stat().st_size != release_record["image_bytes"] or
             actual["artifacts/terminal-release.img"] != release_record["image_sha256"]):
         raise SystemExit("Release-kernel terminal image does not match build.json")
-    print("PASS saved debug/release images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    isolation = ROOT / "artifacts/isolation.img"
+    isolation_record = record["isolation_test"]
+    if (isolation_record["config"] != "release" or
+            isolation_record["test_only"] is not True or
+            isolation.stat().st_size != isolation_record["image_bytes"] or
+            actual["artifacts/isolation.img"] != isolation_record["image_sha256"]):
+        raise SystemExit("Isolation test image does not match build.json")
+    print("PASS saved debug/release/isolation images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

@@ -30,3 +30,7 @@ jobs:
         run: make terminal-release-smoke
       - name: Boot saved release-kernel terminal
         run: make terminal-release-smoke-saved
+      - name: Observe release-kernel memory and device isolation faults
+        run: make isolation-smoke
+      - name: Boot saved isolation test image
+        run: make isolation-smoke-saved

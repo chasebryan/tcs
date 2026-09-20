@@ -14,6 +14,10 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Profile guards | Valid debug/release/host-fixture headers accepted; missing/conflicting/mismatched flags rejected; host fixture rejected for freestanding compilation |
 | Build profile routing | All six release ELFs link only release libraries; debug build remains separate; ambiguous CONFIG override rejected |
 | Harness profile checks | Split banners accepted; wrong profile and release preamble rejected; debug monitor faults rejected; audit output expected only for debug |
+| Release-kernel isolation | Six explicit VM faults: ungranted UART physical/alias access, unmapped policy test-page read/write, read-only write, NX fetch; exact identity/order/shape/address/access/syndrome checks |
+| Protected-state/liveness | Dedicated policy-owned canary and caller self-status checked before/after probes; complete UART and serial-break tests pass afterward; no general server-recovery claim |
+| Isolation verifier negatives | Sanitized real observer adapter: duplicate/wrong faults, state tampering, MR capture, output backpressure; host decoder rejects all wrong exception classes/syndrome families and malformed shapes |
+| Isolation test authority | Separate 12-domain test image; 21 negative graph mutations; normal profile validators/harness reject test-only additions and preamble |
 | Serial queue | Wrap, overflow/loss ordering, and 100,000 deterministic transitions under sanitizers |
 | Serial adapter | Mocked registers/IPC: malformed word counts, invalid byte values, unknown caller, full TX readiness, unrelated IRQ preservation, 64-read IRQ bound, error propagation |
 | Terminal graph | Exact six-domain graph, UART mapping/IRQ only in serial, one-way driver notification, no policy-admin or audit-query route; 15 negative mutations |
@@ -39,3 +43,5 @@ The first boot attempt used 1 GiB RAM and halted inside seL4 because this SDK ex
 These checks do not establish formal verification, production readiness, fault recovery, hardware support, cryptographic audit integrity, dynamic kernel-capability revocation, or security under concurrent in-flight operations. Independent bit-for-bit reproducibility and external review have not been established. Current remote validation is recorded per commit in [GitHub Actions](https://github.com/chasebryan/tcs/actions/workflows/check.yml).
 
 The ordinary terminal still uses the debug kernel and its alternate UART writer. The release-kernel terminal disables that SDK printing route and passes the same observable terminal scenarios, with separate saved image/report/transcript. It does not establish authenticated input, a trusted-display proof, or production readiness. The upstream `CONFIG_VERIFICATION_BUILD` flag does not establish formal verification of this configuration or TCS. Native mocked register tests are not physical-hardware evidence. See [terminal limits](TERMINAL.md).
+
+The separate [isolation test](ISOLATION.md) records actual release-kernel fault messages and a dedicated canary, not an exhaustive proof over the live policy table or all driver behavior. Its probe/observer authority is not in ordinary images.

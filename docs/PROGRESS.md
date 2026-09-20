@@ -4,6 +4,12 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — observed release-kernel isolation faults
+
+Added a separate test-only release image with six child probes, a parent fault observer, and a dedicated policy-owned canary page. Actual QEMU faults reject ungranted UART addresses, unmapped policy-page reads/writes, writing through a read-only mapping, and fetching from a non-executable page. Kernel messages are checked for identity/order, shape, address, access type, and syndrome. The canary and the caller's live restricted policy metadata are checked before launch and after each fault. All six reports are required; silence is failure. The real terminal and serial-break suite runs afterward.
+
+Native sanitized tests cover syndrome decoding and the actual observer adapter, including duplicate/wrong faults, state tampering, message-register clobbering, and output backpressure. Twenty-eight Python tests include 21 isolation-graph mutations and malformed/missing/partial runtime evidence. Normal graphs, service protocols, and saved ordinary image bytes are unchanged. Test supervision and page-sharing authority exist only in the separately checked test image. See [isolation evidence and limits](ISOLATION.md); this is not a claim of arbitrary driver containment, physical-hardware isolation, or general server recovery.
+
 ## 2026-09-20 — separate release-kernel terminal
 
 Added a release-kernel terminal with separate objects, ELFs, SDK headers/libraries, image, and saved evidence. Every server checks its intended profile against generated kernel flags. Banners identify the profile; the emulator harness rejects mismatches, any release boot preamble, and diagnostic interleaving. The same six-domain graph is used, with no new authority or administrative endpoint. Debug seed and terminal targets remain available.
@@ -49,6 +55,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Add negative device/memory-access fault tests before granting an administration service any control authority. Use test-only isolated probes and explicitly observed faults; silence or a timeout alone must not count as successful isolation. Preserve the ordinary release graph and keep diagnostic test authority out of user-facing images.
+Define the separate administration/authentication protocol and its executable denial tests, including replay, stale sessions, subject binding, and malformed requests. Ordinary terminal input and serial-driver messages must never impersonate an authorized operator. Select and document the credential/provisioning boundary before wiring interactive mutations; no embedded test credential may authorize a deployed image.
 
-Design the separate administration/authentication boundary before making any control command interactive. Continue into lifecycle supervision only after those boundaries have executable tests.
+Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.

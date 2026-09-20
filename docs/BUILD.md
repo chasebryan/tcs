@@ -49,6 +49,9 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make terminal-release-smoke` | Test release-kernel UART responses, no debug preamble, and serial-break recovery |
 | `make terminal-release-smoke-saved` | Verify and test `artifacts/terminal-release.img`; no SDK/compiler needed |
 | `make terminal-release-run` | Interactive release-kernel terminal; Ctrl-A, then X exits QEMU |
+| `make isolation-image` | Build test-only observer/probes and `build/isolation/isolation.img` using the release kernel |
+| `make isolation-smoke` | Observe six required memory/device faults, check protected state, then exercise the UART terminal |
+| `make isolation-smoke-saved` | Verify and test `artifacts/isolation.img`; no SDK/compiler needed |
 
 The smoke test waits at most 30 seconds for a verdict. The guest deliberately idles after the automated scenario; no login prompt is expected. The runner terminates only its own emulator process. Generated build files and compiler caches are confined to `build/` (or the specified `BUILD_DIR`).
 
@@ -69,6 +72,8 @@ Every server includes a compile-time guard after the SDK headers. Release requir
 
 The terminal banner and `version` response include `debug-kernel` or `release-kernel`. The smoke harness rejects a mismatched image, and release testing requires no serial output before its banner and no diagnostic interleaving with subsequent responses. Debug runs retain audit sequence observations; the silent release run makes no internal audit-sequence claim. See [terminal limits](TERMINAL.md).
 
+The explicitly selected `--isolation` harness mode requires six structured fault reports and protected-state checks before that banner. This mode is only for `system/isolation.system`, never an exception to normal release-image expectations. See the [test authority and evidence boundaries](ISOLATION.md).
+
 ## Local emulator control
 
 The terminal smoke tests use a private temporary Unix-domain socket under `/tmp` for QEMU control, with no TCP listener or guest network device. The harness negotiates QMP and injects UART breaks, then closes the socket and removes its own temporary directory. Sandboxed environments must permit this local socket. A bind-permission error is a host test-environment limitation, not evidence that the guest boot failed. Interactive `terminal-run` does not require this test-control socket.
@@ -85,6 +90,6 @@ That path is an example, not a TCS dependency; it must exist on your host. Match
 
 ## Automation and saved evidence
 
-The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots newly built and saved seed/debug-terminal/release-terminal images. Consult the run for the exact commit, not the existence of the workflow alone.
+The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots newly built and saved seed/debug-terminal/release-terminal/isolation-test images. Consult the run for the exact commit, not the existence of the workflow alone.
 
 The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.

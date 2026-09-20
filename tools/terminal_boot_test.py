@@ -2,11 +2,47 @@
 import argparse
 import json
 from pathlib import Path
+import re
 import selectors
 import socket
 import subprocess
 import tempfile
 import time
+
+
+def consume_isolation(pending):
+    """Require six kernel-observed faults before accepting a test-image banner."""
+    begin = b"TCS ISOLATION BEGIN release-kernel cases=6\n"
+    if not begin.startswith(pending[:len(begin)]):
+        raise RuntimeError("Unexpected isolation boot preamble")
+    if b"TCS ISOLATION FAIL" in pending:
+        raise RuntimeError("Guest isolation verifier rejected a fault or protected state")
+    lines = pending.split(b"\n", 8)
+    if len(lines) < 9:
+        if len(pending) > 4096:
+            raise RuntimeError("Oversized isolation evidence")
+        return False
+    addresses = (0x09000018, 0x04000000, 0x05000000, 0x05000000, 0x06000000, 0x07000000)
+    pattern = rb"FAULT PASS child=(\d+) label=(\d+) words=(\d+) ip=(\d+) address=(\d+) instruction=(\d+) fsr=(\d+)"
+    for child, line in enumerate(lines[1:7], 1):
+        match = re.fullmatch(pattern, line)
+        if not match:
+            raise RuntimeError("Malformed isolation fault evidence")
+        identity, label, words, ip, address, instruction, fsr = map(int, match.groups())
+        execute, write, permission = child == 6, child in (2, 4, 5), child >= 5
+        code = fsr & 63
+        valid_code = 13 <= code <= 15 if permission else 4 <= code <= 7
+        valid_ip = ip == address if execute else 0x200000 <= ip < 0x300000
+        if not (identity == child and label == 6 and words == 4 and not ip & 3 and
+                valid_ip and address == addresses[child - 1] and instruction == execute and
+                fsr < 1 << 32 and (fsr >> 26) & 63 == (0x20 if execute else 0x24) and
+                fsr & (1 << 25) and not fsr & (15 << 7) and
+                (fsr >> 6) & 1 == write and valid_code):
+            raise RuntimeError(f"Isolation fault mismatch for child {child}")
+    if lines[7] != b"TCS ISOLATION PASS cases=6 canary=intact policy=restricted":
+        raise RuntimeError("Missing protected-state isolation verdict")
+    del pending[:sum(len(line) + 1 for line in lines[:8])]
+    return True
 
 
 def consume_boot(pending, profile):
@@ -102,7 +138,10 @@ def main():
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--log", required=True, type=Path)
     parser.add_argument("--profile", choices=("debug", "release"), default="debug")
+    parser.add_argument("--isolation", action="store_true", help="Require test-only fault evidence before terminal tests")
     args = parser.parse_args()
+    if args.isolation and args.profile != "release":
+        parser.error("--isolation requires --profile release")
     # A short, private path also fits macOS's Unix-domain socket path limit.
     with tempfile.TemporaryDirectory(prefix="tcs-qmp-", dir="/tmp") as directory:
         run(args, Path(directory) / "control.sock")
@@ -159,6 +198,9 @@ def run(args, control_path):
     try:
         qmp = Qmp(control_path)
         deadline = time.monotonic() + 20
+        if args.isolation:
+            while not consume_isolation(pending):
+                pump(deadline)
         while not consume_boot(pending, args.profile):
             pump(deadline)
         version = f"TCS 0.2-dev / {args.profile}-kernel / read-only terminal\ntcs> ".encode()
@@ -209,6 +251,8 @@ def run(args, control_path):
         if pending:
             raise RuntimeError(f"Unexpected trailing output: {pending!r}")
         print(f"PASS QEMU {args.profile}-kernel UART echo/editing, live status, injected serial breaks, discarded commands, and recovery")
+        if args.isolation:
+            print("PASS six observed isolation faults, policy-owned canary, and post-fault terminal/service liveness")
     finally:
         if qmp is not None:
             qmp.close()

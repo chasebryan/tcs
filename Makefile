@@ -18,6 +18,8 @@ SERVERS := console client storage policy audit
 IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,$(SERVERS)))
 TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 RELEASE_IMAGES := $(addprefix $(RELEASE_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
+ISOLATION_DIR := $(BUILD_DIR)/isolation
+ISOLATION_PROBES := $(addprefix $(ISOLATION_DIR)/probe,$(addsuffix .elf,1 2 3 4 5 6))
 HEADERS := $(wildcard include/tcs/*.h)
 HOST_FLAGS := -std=c11 -Wall -Wextra -Werror -pedantic -O1 -g -Iinclude
 TARGET_COMMON_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
@@ -30,6 +32,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 
 .PHONY: all test bootstrap image smoke smoke-saved verify-artifacts check-tools check-system terminal-image terminal-smoke terminal-run terminal-smoke-saved
 .PHONY: terminal-release-image terminal-release-smoke terminal-release-smoke-saved terminal-release-run
+.PHONY: isolation-image isolation-smoke isolation-smoke-saved
 .SECONDARY:
 all: test
 
@@ -40,6 +43,9 @@ $(BUILD_DIR):
 	mkdir -p "$@"
 
 $(RELEASE_DIR):
+	mkdir -p "$@"
+
+$(ISOLATION_DIR):
 	mkdir -p "$@"
 
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
@@ -60,18 +66,27 @@ $(BUILD_DIR)/status_ipc_test: tests/status_ipc_test.c tests/support/microkit.h s
 $(BUILD_DIR)/terminal_server_test: tests/terminal_server_test.c tests/support/microkit.h servers/terminal.c lib/terminal.c $(HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/terminal.c tests/terminal_server_test.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test check-system
+$(BUILD_DIR)/isolation_test: tests/isolation_test.c tests/isolation/cases.h | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined tests/isolation_test.c -o "$@"
+
+$(BUILD_DIR)/isolation_observer_test: tests/isolation_observer_test.c tests/isolation/observer.c tests/isolation/cases.h tests/support/microkit.h servers/terminal.c lib/terminal.c $(HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/terminal.c tests/isolation_observer_test.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
 	"$(BUILD_DIR)/status_ipc_test"
 	"$(BUILD_DIR)/terminal_server_test"
+	"$(BUILD_DIR)/isolation_test"
+	"$(BUILD_DIR)/isolation_observer_test"
 	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
 	$(PYTHON) tools/check_system.py system/tcs.system
 	$(PYTHON) tools/check_system.py system/terminal.system --profile terminal
+	$(PYTHON) tools/check_system.py system/isolation.system --profile isolation
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -149,6 +164,34 @@ terminal-release-run: terminal-release-image
 	"$(QEMU)" -machine virt,virtualization=on -cpu cortex-a53 -m 2G -smp 1 \
 	    -display none -serial mon:stdio -nic none -accel tcg \
 	    -device loader,file=$(RELEASE_DIR)/terminal.img,addr=0x70000000,cpu-num=0
+
+# Test-only fault observer/probes; normal images never depend on these ELFs.
+$(ISOLATION_DIR)/isolation_%.o: tests/isolation/%.c tests/isolation/cases.h servers/terminal.c servers/policy.c $(HEADERS) Makefile | $(ISOLATION_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(ISOLATION_DIR)/probe%.o: tests/isolation/probe.c tests/isolation/cases.h $(HEADERS) Makefile | $(ISOLATION_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DISO_PROBE=$* -c "$<" -o "$@"
+
+$(ISOLATION_PROBES): $(ISOLATION_DIR)/%.elf: $(ISOLATION_DIR)/%.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $< -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(ISOLATION_DIR)/isolation_observer.elf: $(ISOLATION_DIR)/isolation_observer.o $(RELEASE_DIR)/terminal_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(ISOLATION_DIR)/isolation_policy.elf: $(ISOLATION_DIR)/isolation_policy.o $(RELEASE_DIR)/policy_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(ISOLATION_DIR)/isolation.img: $(ISOLATION_PROBES) $(ISOLATION_DIR)/isolation_observer.elf $(ISOLATION_DIR)/isolation_policy.elf $(RELEASE_IMAGES) system/isolation.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/isolation.system --search-path "$(ISOLATION_DIR)" "$(RELEASE_DIR)" \
+	    --board $(BOARD) --config release -o "$@" -r "$(ISOLATION_DIR)/report.txt"
+
+isolation-image: $(ISOLATION_DIR)/isolation.img
+
+isolation-smoke: isolation-image
+	$(PYTHON) tools/terminal_boot_test.py --profile release --isolation --qemu "$(QEMU)" --image "$(ISOLATION_DIR)/isolation.img" --log "$(ISOLATION_DIR)/boot.log"
+
+isolation-smoke-saved: verify-artifacts
+	$(PYTHON) tools/terminal_boot_test.py --profile release --isolation --qemu "$(QEMU)" --image artifacts/isolation.img --log "$(BUILD_DIR)/saved-isolation-boot.log"
 
 terminal-smoke: terminal-image
 	$(PYTHON) tools/terminal_boot_test.py --qemu "$(QEMU)" --image "$(BUILD_DIR)/terminal.img" --log "$(BUILD_DIR)/terminal-boot.log"

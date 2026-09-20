@@ -36,6 +36,8 @@ For the new terminal, run `make terminal-smoke` for scripted real-UART tests or 
 
 The separate **release-kernel terminal** disables the SDK's kernel/runtime debug-printing path: `make terminal-release-run` to use it, `make terminal-release-smoke` to rebuild/test, or `make terminal-release-smoke-saved` to test the included image without an SDK. Its banner identifies the profile. The same restricted server graph and commands apply; this is still a development OS, not a production release or a formal-verification claim. Debug seed and terminal targets remain available.
 
+`make isolation-smoke` runs a separate [runtime isolation test image](docs/ISOLATION.md): six deliberate memory/device accesses must produce specific kernel faults while a policy-owned test page and live self-status remain intact. Normal images contain none of its probe/observer authority. `make isolation-smoke-saved` tests the included evidence image without an SDK.
+
 ## First server graph
 
 ```mermaid

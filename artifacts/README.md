@@ -6,6 +6,8 @@
 
 `terminal-release.img` uses the same graph with the SDK's **release** kernel/runtime and separately linked servers. `terminal-release-boot.log` begins directly with its profile-tagged terminal banner; `terminal-release-report.txt` records construction. Run `make terminal-release-smoke-saved` without an SDK/compiler. This profile disables kernel/runtime debug printing. Its test checks terminal responses and serial-break recovery, but cannot observe the debug audit sequence. No administrative endpoint is exposed in either terminal profile. None of these images is a production release or proof of formal verification.
 
+`isolation.img` is **test-only**, with six faulting probe domains and a parent observer added to the release terminal graph. `isolation-boot.log` contains the six checked kernel-fault reports, protected-state verdict, and subsequent terminal tests; `isolation-report.txt` records the additional test authority. Run `make isolation-smoke-saved`. The [evidence scope](../docs/ISOLATION.md) is specific memory/device accesses, not arbitrary driver compromise or production fault recovery. Normal images do not contain these probes or observer capabilities.
+
 From the repository root, run the saved image without rebuilding:
 
 ```sh

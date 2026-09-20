@@ -1,0 +1,257 @@
+TCS ISOLATION BEGIN release-kernel cases=6
+FAULT PASS child=1 label=6 words=4 ip=2097176 address=150994968 instruction=0 fsr=2478866438
+FAULT PASS child=2 label=6 words=4 ip=2097172 address=67108864 instruction=0 fsr=2480898118
+FAULT PASS child=3 label=6 words=4 ip=2097172 address=83886080 instruction=0 fsr=2478866438
+FAULT PASS child=4 label=6 words=4 ip=2097172 address=83886080 instruction=0 fsr=2480898118
+FAULT PASS child=5 label=6 words=4 ip=2097172 address=100663296 instruction=0 fsr=2480898127
+FAULT PASS child=6 label=6 words=4 ip=117440512 address=117440512 instruction=1 fsr=2181038095
+TCS ISOLATION PASS cases=6 canary=intact policy=restricted
+TCS TERMINAL READY (release-kernel, read-only)
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> help
+help | version | status | read <generation>
+No administration commands.
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> read 1
+READ DENIED status=1
+tcs> read 18446744073709551615
+READ DENIED status=1
+tcs> grant 1
+ERROR unknown or malformed command
+tcs> revoke 1
+ERROR unknown or malformed command
+tcs> restore 1
+ERROR unknown or malformed command
+tcs> quarantine 1
+ERROR unknown or malformed command
+tcs> read 0
+ERROR unknown or malformed command
+tcs> read -1
+ERROR unknown or malformed command
+tcs> read 18446744073709551616
+ERROR unknown or malformed command
+tcs> help now
+ERROR unknown or malformed command
+tcs> READ 1
+ERROR unknown or malformed command
+tcs> status 2
+ERROR unknown or malformed command
+tcs> status 1 grant
+ERROR unknown or malformed command
+tcs> help
+ERROR discarded input line
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> help
+ERROR discarded input line
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> help                                                                                                                           
+ERROR discarded input line
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> versiom n
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> version x 
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> read 1^C
+CANCELLED
+tcs> version
+TCS 0.2-dev / release-kernel / read-only terminal
+tcs> help
+help | version | status | read <generation>
+No administration commands.
+tcs> tcs> MON|ERROR microkit_test
+ERROR unknown or malformed command
+tcs> help                                                                                                                           
+help | version | status | read <generation>
+No administration commands.
+tcs> read 1
+READ DENIED status=1
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> read 1
+INPUT LOST; discard until Enter or Ctrl-C
+
+ERROR discarded input line
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> sta
+INPUT LOST; discard until Enter or Ctrl-C
+
+ERROR discarded input line
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> 
+INPUT LOST; discard until Enter or Ctrl-C
+^C
+CANCELLED
+tcs> read 1
+READ DENIED status=1
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 59160 (<unknown process>)
