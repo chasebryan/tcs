@@ -28,7 +28,9 @@ These are architectural boundaries. Separate interchangeable substrate implement
 
 The console is privileged test machinery, not an authenticated human session. Replace it with a separate authenticated administration domain before adding an ordinary shell.
 
-All seed channel ends explicitly disable notification sending; the current handlers do not use it. The system checker rejects additional resources, altered program images, and undeclared communication authority. A future serial/terminal profile must declare its distinct device, IRQ, and notification needs explicitly rather than inheriting the test console's authority.
+All seed channel ends explicitly disable notification sending; the current handlers do not use it. The system checker rejects additional resources, altered program images, and undeclared communication authority. The separate serial/terminal profile declares its distinct device, IRQ, and notification needs explicitly rather than inheriting the test console's authority; see [terminal architecture](TERMINAL.md).
+
+Self-status uses the existing client → storage → policy path, with zero-word requests and a fixed channel-bound subject. It returns validated current metadata without changing authority or consuming audit capacity. It is observable during quarantine and audit exhaustion, but is not a cached authorization decision; resource reads still recheck policy. Neither profile exposes a payload-selectable status subject.
 
 The synchronous call graph has increasing priorities and no cycles. This fits [Microkit's protected-call constraints](https://docs.sel4.systems/projects/microkit/manual/2.3.1/#protected-procedures). The compiled API and SDK are pinned to 2.3.0; live documentation can describe newer versions. Channels carry kernel-provided caller identities; request payloads never supply an admin identity. Storage is trusted to map its incoming client channel to its fixed subject. Compromised storage could disclose its own fixture, so the policy service alone is not a proof that a compromised resource owner enforces access.
 

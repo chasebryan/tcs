@@ -1,5 +1,17 @@
 #include "tcs/policy.h"
 
+struct tcs_snapshot tcs_policy_self_status(const struct tcs_policy *policy,
+    enum tcs_actor actor)
+{
+    if (actor != TCS_STORAGE)
+        return (struct tcs_snapshot){TCS_DENIED, 0, 0, 0, 0};
+    const struct tcs_subject *s = &policy->subjects[TCS_CLIENT_SUBJECT];
+    struct tcs_snapshot snapshot = {TCS_OK, s->state, s->generation, s->object, s->rights};
+    if (!tcs_snapshot_valid(snapshot))
+        return (struct tcs_snapshot){TCS_BAD_MESSAGE, 0, 0, 0, 0};
+    return snapshot;
+}
+
 static struct tcs_result result(uint64_t status, uint64_t value)
 {
     return (struct tcs_result){status, value};

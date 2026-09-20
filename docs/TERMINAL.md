@@ -10,7 +10,7 @@ The terminal core in `lib/terminal.c` is allocation-free and uses a 128-byte lin
 | --- | --- |
 | `help` | Show the allowed commands |
 | `version` | Show the build identity |
-| `status` | Query the calling terminal's own status, once that endpoint exists |
+| `status` | Query the calling terminal's own current policy state, generation, object, and rights |
 | `read <generation>` | Request a fixture read under an existing nonzero decimal session generation |
 
 The parser only produces a command value. It does not perform IPC, grant rights, read policy state, or authenticate a user. A parsed generation is untrusted input; storage and policy must still validate caller identity and the current session. Admin operations have no parser representation and are rejected.
@@ -29,7 +29,9 @@ The serial server uses a 256-byte private receive queue and handles at most 64 U
 
 Serial IPC uses versioned labels `0x130` (read, zero words), `0x131` (write, 1–32 words, one byte per word), and read reply `0x181` (two words: flags and byte). Read flags are bit 0 for a byte and bit 1 for detected loss; an absent byte is zero. Write replies use the existing two-word status/value format, with the value equal to the accepted byte count. All words are validated before any write. Consumers reject malformed reply lengths, labels, flags, and counts.
 
-Run `make terminal-run`; Ctrl-A then X exits QEMU. This first terminal has no local echo. `help` and `version` work; `read` exercises actual policy IPC and is denied because no grant authority exists in this profile. `status` honestly reports its unimplemented endpoint. Authentication and a separate administration service remain future gates.
+Run `make terminal-run`; Ctrl-A then X exits QEMU. This first terminal has no local echo. `help` and `version` work; `read` exercises actual policy IPC and is denied because no grant authority exists in this profile. `status` makes a fresh zero-word query through client and storage to policy. Every hop rejects extra words; policy binds the response to its storage channel's fixed client subject, never an input field. It reports `SELF state=restricted generation=0 object=0 rights=0` after this profile boots. The seed scenario separately tests live grant/revoke/quarantine/restore transitions. Authentication and a separate administration service remain future gates.
+
+Self-status does not mutate state, append audit records, release resource data, or grant authority. It remains available when the bounded audit log is full. The response is a point-in-time snapshot, not a permission to skip the next access check. Generations are not secret bearer tokens. An error or malformed reply produces no usable snapshot fields; the terminal reports status unavailable. See the exact [self-status protocol](PROTOCOL.md#self-status).
 
 ## Limits and evidence
 

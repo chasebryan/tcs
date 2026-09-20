@@ -142,9 +142,28 @@ static void transition_sequences(void)
     puts("PASS 50000 deterministic transition steps preserve invariants");
 }
 
+static void self_status(void)
+{
+    struct tcs_policy p = {0};
+    p.subjects[2] = (struct tcs_subject){999, TCS_OBJECT, TCS_READ, TCS_ACTIVE};
+    struct tcs_policy before = p;
+    for (unsigned actor = 0; actor < 5; ++actor) {
+        struct tcs_snapshot s = tcs_policy_self_status(&p, (enum tcs_actor)actor);
+        assert(s.status == (actor == TCS_STORAGE ? TCS_OK : TCS_DENIED));
+        assert(s.state == TCS_RESTRICTED && s.generation == 0 && s.object == 0 && s.rights == 0);
+        assert(memcmp(&p, &before, sizeof p) == 0);
+    }
+    p.subjects[TCS_CLIENT_SUBJECT].generation = UINT64_MAX;
+    assert(tcs_policy_self_status(&p, TCS_STORAGE).generation == UINT64_MAX);
+    p.subjects[TCS_CLIENT_SUBJECT].rights = TCS_READ; /* Inconsistent restricted state. */
+    struct tcs_snapshot s = tcs_policy_self_status(&p, TCS_STORAGE);
+    assert(s.status == TCS_BAD_MESSAGE && s.generation == 0 && s.rights == 0);
+    puts("PASS self-status is read-only, fixed-subject, and rejects inconsistent metadata");
+}
+
 int main(void)
 {
-    lifecycle(); authority(); malformed(); audit_failure(); exhaustion(); transition_sequences();
+    lifecycle(); authority(); malformed(); audit_failure(); exhaustion(); transition_sequences(); self_status();
     puts("TCS POLICY TESTS PASS");
     return 0;
 }

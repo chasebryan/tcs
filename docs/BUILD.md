@@ -35,7 +35,7 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 
 | Command | Result |
 | --- | --- |
-| `make test` | Sanitized policy/terminal tests, 50,000 policy transitions, 100,000 input bytes, strict graph/mutation checks, and offline bootstrap tests; no downloads |
+| `make test` | Sanitized policy/terminal/serial and self-status IPC tests, deterministic transitions/input, strict graph/mutation checks, and offline bootstrap tests; no downloads |
 | `make bootstrap` | Download and extract pinned SDK/compiler |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |

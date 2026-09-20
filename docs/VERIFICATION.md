@@ -10,6 +10,9 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Serial queue | Wrap, overflow/loss ordering, and 100,000 deterministic transitions under sanitizers |
 | Serial adapter | Mocked registers/IPC: malformed word counts, invalid byte values, unknown caller, full TX readiness, unrelated IRQ preservation, 64-read IRQ bound, error propagation |
 | Terminal graph | Exact six-domain graph, UART mapping/IRQ only in serial, one-way driver notification, no policy-admin or audit-query route; 15 negative mutations |
+| Self-status adapters | Sanitized real C adapters with host IPC routing: zero-word request enforcement at all three hops, caller binding, lifecycle freshness, no mutation/audit append, invalid reply normalization |
+| Self-status kernel path | QEMU seed checks current grant/revoke/regrant/quarantine/restore state, different-subject isolation, payload rejection, admin-channel rejection, and metadata after audit-failed revocation |
+| Self-status terminal | More than 64 consecutive UART status queries leave audit capacity intact; first later read is audit record 1; subject-selecting commands rejected |
 | UART runtime | Actual QEMU serial commands, default-denied reads through policy, CRLF, editing, cancellation, control bytes, overflow and recovery; separate saved image and transcript |
 | Transition sequences | 50,000 deterministic steps; generation monotonicity, subject separation, state/right consistency, and authorized grants checked |
 | Graph validation | Five domains, six declared channel pairs, exact program/identity bindings, no extra resources, increasing RPC priorities, and all unused notification rights disabled |

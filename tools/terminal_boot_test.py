@@ -62,16 +62,20 @@ def main():
         help_text = b"help | version | status | read <generation>\nNo administration commands.\ntcs> "
         invalid = b"ERROR unknown or malformed command\ntcs> "
         discarded = b"ERROR discarded input line\ntcs> "
+        own_status = b"SELF state=restricted generation=0 object=0 rights=0\ntcs> "
         def denied(audit_count):
             return f"TCS audit decision {audit_count}\nREAD DENIED status=1\ntcs> ".encode()
         check(b"version\r\n", version)
         check(b"help\n", help_text)
-        check(b"status\n", b"Self-status endpoint not implemented; no administrative route.\ntcs> ")
+        check(b"status\n", own_status)
+        # More queries than audit slots: status must not consume that capacity.
+        for _ in range(80):
+            check(b"status\n", own_status)
         check(b"read 1\n", denied(1))
         check(b"read 18446744073709551615\n", denied(2))
         for data in (b"grant 1\n", b"revoke 1\n", b"restore 1\n", b"quarantine 1\n",
                      b"read 0\n", b"read -1\n", b"read 18446744073709551616\n",
-                     b"help now\n", b"READ 1\n"):
+                     b"help now\n", b"READ 1\n", b"status 2\n", b"status 1 grant\n"):
             check(data, invalid)
         for data in (b"help\x00\n", b"help\x1b[A\n", b"help" + b" " * 124 + b"\n"):
             check(data, discarded)
@@ -81,7 +85,8 @@ def main():
         check(b"version\nhelp\n", version + help_text, prompts=2)
         check(b"help" + b" " * 123 + b"\n", help_text)
         check(b"read 1\n", denied(3))
-        print("PASS QEMU UART isolation profile, read-only IPC, CRLF/edit/cancel, hostile input, and recovery")
+        check(b"status\n", own_status)
+        print("PASS QEMU UART profile, live self-status, audit independence, read-only IPC, hostile input, and recovery")
     finally:
         selector.close()
         if process.poll() is None:

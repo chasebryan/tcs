@@ -48,10 +48,14 @@ TCS storage ready (read-only fixture)
 TCS client ready
 
 TCS 0.1.0 Seed | seL4 / Microkit | AArch64
+PASS initial self-status
+PASS self-status rejects subject payload
+PASS admin channel is not self-status identity
 TCS audit decision 1
 PASS default deny
 TCS audit decision 2
 PASS admin grants session
+PASS status reflects grant
 TCS audit decision 3
 PASS authorized IPC read
 TCS audit decision 4
@@ -60,28 +64,33 @@ TCS audit decision 5
 PASS write escalation denied
 TCS audit decision 6
 PASS revoke acknowledged
+PASS status clears revoked rights
 TCS audit decision 7
 PASS revoked session denied
 TCS audit decision 8
 PASS explicit regrant
+PASS status returns current generation
 TCS audit decision 9
 PASS old session remains stale
 TCS audit decision 10
 PASS new session works
 TCS audit decision 11
 PASS quarantine acknowledged
+PASS status reflects quarantine
 TCS audit decision 12
 PASS quarantine blocks reads
 TCS audit decision 13
 PASS quarantine blocks grants
 TCS audit decision 14
 PASS explicit restore
+PASS status reflects restricted restore
 TCS audit decision 15
 PASS restore grants no access
 PASS malformed IPC denied
 PASS client cannot grant through storage
 TCS audit decision 16
 PASS grant to different subject
+PASS status cannot select other subject
 TCS audit decision 17
 PASS other subject handle denied
 TCS audit decision 18
@@ -186,5 +195,6 @@ TCS audit unavailable: grants/reads denied; reductions remain effective
 PASS full audit denies grants
 TCS audit unavailable: grants/reads denied; reductions remain effective
 PASS revoke reports missing audit
+PASS status remains live after audit failure
 TCS SEED PASS
-qemu-system-aarch64: terminating on signal 15 from pid 53022 (<unknown process>)
+qemu-system-aarch64: terminating on signal 15 from pid 55083 (<unknown process>)

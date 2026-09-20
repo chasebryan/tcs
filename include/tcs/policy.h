@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define TCS_SUBJECTS 4u
+#define TCS_CLIENT_SUBJECT 1u
 #define TCS_OBJECT 42u
 #define TCS_READ 1u
 #define TCS_WRITE 2u
@@ -30,6 +31,20 @@ struct tcs_request {
     uint64_t op, subject, object, rights, generation;
 };
 struct tcs_result { uint64_t status, value; };
+struct tcs_snapshot { uint64_t status, state, generation, object, rights; };
+
+/* One fixed client identity in the current graph; never selected by payload. */
+struct tcs_snapshot tcs_policy_self_status(const struct tcs_policy *policy,
+    enum tcs_actor actor);
+
+static inline bool tcs_snapshot_valid(struct tcs_snapshot s)
+{
+    if (s.status != TCS_OK || s.state > TCS_QUARANTINED)
+        return false;
+    if (s.state == TCS_ACTIVE)
+        return s.generation != 0 && s.object == TCS_OBJECT && s.rights == TCS_READ;
+    return s.object == 0 && s.rights == 0;
+}
 
 /* Actor identity is supplied by the IPC adapter, never by message payload. */
 struct tcs_result tcs_policy_apply(struct tcs_policy *policy,

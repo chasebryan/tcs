@@ -42,11 +42,15 @@ $(BUILD_DIR)/serial_test: lib/serial.c lib/terminal.c tests/serial_test.c includ
 $(BUILD_DIR)/serial_server_test: tests/serial_server_test.c tests/support/microkit.h servers/serial.c lib/serial.c $(HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/serial.c tests/serial_server_test.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test check-system
+$(BUILD_DIR)/status_ipc_test: tests/status_ipc_test.c tests/support/microkit.h servers/policy.c servers/storage.c servers/client.c lib/policy.c $(HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/policy.c tests/status_ipc_test.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
+	"$(BUILD_DIR)/status_ipc_test"
 	$(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:

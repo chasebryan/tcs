@@ -17,6 +17,13 @@ static inline void microkit_notify(microkit_channel ch)
 { assert(ch == 1); ++test_notifications; }
 static inline void microkit_irq_ack(microkit_channel ch)
 { assert(ch == 0); ++test_acks; }
+#ifdef TCS_TEST_IPC_ROUTER
+static microkit_msginfo test_ppcall(microkit_channel ch, microkit_msginfo m);
+static inline microkit_msginfo microkit_ppcall(microkit_channel ch, microkit_msginfo m)
+{ return test_ppcall(ch, m); }
+static inline void microkit_dbg_puts(const char *s) { (void)s; }
+#else
 static inline microkit_msginfo microkit_ppcall(microkit_channel ch, microkit_msginfo m)
 { (void)ch; (void)m; assert(0 && "serial must never make a protected call"); return m; }
+#endif
 #endif

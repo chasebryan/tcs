@@ -62,9 +62,22 @@ static void execute(void)
     case TCS_CMD_VERSION:
         append("TCS 0.2-dev / read-only terminal\r\n");
         break;
-    case TCS_CMD_STATUS:
-        append("Self-status endpoint not implemented; no administrative route.\r\n");
+    case TCS_CMD_STATUS: {
+        struct tcs_snapshot s = tcs_snapshot_response(microkit_ppcall(CLIENT_CHANNEL,
+            microkit_msginfo_new(TCS_LABEL(TCS_CLIENT_STATUS), 0)));
+        if (s.status == TCS_OK) {
+            append("SELF state=");
+            append(s.state == TCS_ACTIVE ? "active" :
+                   s.state == TCS_QUARANTINED ? "quarantined" : "restricted");
+            append(" generation="); decimal(s.generation);
+            append(" object="); decimal(s.object);
+            append(" rights="); decimal(s.rights);
+        } else {
+            append("STATUS UNAVAILABLE status="); decimal(s.status);
+        }
+        append("\r\n");
         break;
+    }
     case TCS_CMD_READ: {
         microkit_mr_set(0, TCS_OBJECT);
         microkit_mr_set(1, TCS_READ);

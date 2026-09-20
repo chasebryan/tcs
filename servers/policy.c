@@ -16,6 +16,14 @@ microkit_msginfo protected(microkit_channel ch, microkit_msginfo msg)
     uint64_t label = microkit_msginfo_get_label(msg);
     if (!ready || (ch != 0 && ch != 1))
         return tcs_reply((struct tcs_result){TCS_DENIED, 0});
+    if (label == TCS_LABEL(TCS_SELF_STATUS)) {
+        if (ch != 1)
+            return tcs_reply((struct tcs_result){TCS_DENIED, 0});
+        if (microkit_msginfo_get_count(msg) != 0)
+            return tcs_reply((struct tcs_result){TCS_BAD_MESSAGE, 0});
+        /* No request words, no audit append, and no policy mutation. */
+        return tcs_snapshot_reply(tcs_policy_self_status(&live, TCS_STORAGE));
+    }
     if (microkit_msginfo_get_count(msg) != 4 ||
         label < TCS_LABEL(TCS_GRANT) || label > TCS_LABEL(TCS_RESTORE))
         return tcs_reply((struct tcs_result){TCS_BAD_MESSAGE, 0});
