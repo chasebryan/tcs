@@ -34,6 +34,8 @@ To boot the included image without downloading a compiler or SDK, install QEMU a
 
 For the new terminal, run `make terminal-smoke` for scripted real-UART tests or `make terminal-run` to use it. Commands: `help`, `version`, `status`, `read <generation>`. Input is echoed; Backspace/Delete edit and Ctrl-C cancels. Exit QEMU with **Ctrl-A, then X**. Reads are denied by default because this profile contains no administrator. `status` reports the caller's live policy state, generation, object, and rights; it cannot select another subject or grant access. `make terminal-smoke-saved` tests the included terminal image without a compiler, including injected serial breaks.
 
+The separate **release-kernel terminal** disables the SDK's kernel/runtime debug-printing path: `make terminal-release-run` to use it, `make terminal-release-smoke` to rebuild/test, or `make terminal-release-smoke-saved` to test the included image without an SDK. Its banner identifies the profile. The same restricted server graph and commands apply; this is still a development OS, not a production release or a formal-verification claim. Debug seed and terminal targets remain available.
+
 ## First server graph
 
 ```mermaid

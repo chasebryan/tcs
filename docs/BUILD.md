@@ -2,7 +2,7 @@
 
 A fresh checkout contains all TCS source, system configuration, tests, a saved boot image, and upstream source archives. It does not require another workspace or an installed TCS system. Build tools are downloaded on first bootstrap; this is not an air-gapped or self-hosting SDK.
 
-The guest target is `qemu_virt_aarch64`, debug configuration, one emulated Cortex-A53 CPU and **2 GiB guest RAM**. The RAM size is part of the upstream kernel configuration. The runner attaches no disk or network device. There is no Linux kernel or distribution inside the guest.
+The guest target is `qemu_virt_aarch64`, one emulated Cortex-A53 CPU and **2 GiB guest RAM**. Seed and ordinary terminal targets use the debug configuration; `terminal-release-*` targets separately use the release configuration. The RAM size is part of the upstream kernel configuration. The runner attaches no disk or network device. There is no Linux kernel or distribution inside the guest.
 
 ## Prerequisites
 
@@ -45,6 +45,10 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make terminal-smoke` | Script UART editing/commands and injected serial breaks; save `build/terminal-boot.log` |
 | `make terminal-smoke-saved` | Verify and exercise `artifacts/terminal.img`; no SDK/compiler needed |
 | `make terminal-run` | Interactive terminal with bounded echo/editing; Ctrl-A, then X exits QEMU |
+| `make terminal-release-image` | Build separate release objects/ELFs and `build/release/terminal.img` |
+| `make terminal-release-smoke` | Test release-kernel UART responses, no debug preamble, and serial-break recovery |
+| `make terminal-release-smoke-saved` | Verify and test `artifacts/terminal-release.img`; no SDK/compiler needed |
+| `make terminal-release-run` | Interactive release-kernel terminal; Ctrl-A, then X exits QEMU |
 
 The smoke test waits at most 30 seconds for a verdict. The guest deliberately idles after the automated scenario; no login prompt is expected. The runner terminates only its own emulator process. Generated build files and compiler caches are confined to `build/` (or the specified `BUILD_DIR`).
 
@@ -56,6 +60,14 @@ make smoke BUILD_DIR=build-custom MICROKIT_SDK=/path/to/microkit-sdk-2.3.0 \
 ```
 
 Use a fresh build directory when changing SDK/compiler paths or versions; Make does not fingerprint tool executables. This milestone checks the exact SDK/compiler version but does not rebuild the SDK itself. See [upstream source](../third_party/README.md) for kernel/runtime source and upstream rebuild instructions.
+
+## Kernel profile separation
+
+Do not set `CONFIG=release` on debug targets; the build rejects that ambiguous override. Release targets place every object and ELF under `$(BUILD_DIR)/release`, use only the release SDK include/library paths, and construct the image with `--config release`. Both variants use `system/terminal.system`; no additional authority is granted by choosing release. Avoid concurrent Make invocations against the same build directory.
+
+Every server includes a compile-time guard after the SDK headers. Release requires `CONFIG_DEBUG_BUILD` and `CONFIG_PRINTING` to be absent and the pinned release configuration's `CONFIG_VERIFICATION_BUILD` to be present. Debug requires the debug/printing flags. The latter flag name is an upstream build setting, **not evidence of a verified TCS system or this kernel configuration**. Native IPC fixtures are explicitly marked host-only and are rejected in a freestanding build. Header guards and build-plan tests catch accidental profile mixing; they do not authenticate a modified SDK, compiler, Makefile, or build host.
+
+The terminal banner and `version` response include `debug-kernel` or `release-kernel`. The smoke harness rejects a mismatched image, and release testing requires no serial output before its banner and no diagnostic interleaving with subsequent responses. Debug runs retain audit sequence observations; the silent release run makes no internal audit-sequence claim. See [terminal limits](TERMINAL.md).
 
 ## Local emulator control
 
@@ -73,6 +85,6 @@ That path is an example, not a TCS dependency; it must exist on your host. Match
 
 ## Automation and saved evidence
 
-The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots both the new and saved images. Consult the run for the exact commit, not the existence of the workflow alone.
+The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots newly built and saved seed/debug-terminal/release-terminal images. Consult the run for the exact commit, not the existence of the workflow alone.
 
 The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.

@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — separate release-kernel terminal
+
+Added a release-kernel terminal with separate objects, ELFs, SDK headers/libraries, image, and saved evidence. Every server checks its intended profile against generated kernel flags. Banners identify the profile; the emulator harness rejects mismatches, any release boot preamble, and diagnostic interleaving. The same six-domain graph is used, with no new authority or administrative endpoint. Debug seed and terminal targets remain available.
+
+Local sanitized tests and 22 Python tests pass, including profile-guard, build-routing, and harness-negative cases. All three newly built images and their saved copies pass actual QEMU scenarios. Both terminal variants pass three injected serial breaks and Enter/Ctrl-C recovery. Debug evidence still checks audit sequence numbers; release evidence checks observable rejection/denial/recovery without claiming access to silent internal counters.
+
+Testing caught a Make pattern-rule overlap that could link release servers against debug libraries; explicit static target sets now separate those paths, with a regression test for every server link. The release configuration removes the shared SDK debug-printing route, but does not add authenticated input, physical-hardware support, formal verification, fault supervision, or production readiness. The upstream `CONFIG_VERIFICATION_BUILD` name is not a verification claim.
+
 ## 2026-09-20 — visible editing and real UART break recovery
 
 Added bounded safe echo, single-cell tab/delete behavior, cancellation display, and deferred command execution until echo is flushed. Transport loss produces an explicit notice and continues rejecting the incomplete line until Enter or Ctrl-C. The host terminal adapter test covers full/partial writes, ordering, loss, and malformed replies. Exhaustive single-byte echo tests cover all 256 input values.
@@ -41,6 +49,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Build and test a separate release-kernel terminal profile to remove the shared debug output route. Keep debug seed lifecycle tests available, separate build directories/configurations, and explicit kernel-configuration claims. Then add negative device/memory-access fault tests before granting an administration service any control authority.
+Add negative device/memory-access fault tests before granting an administration service any control authority. Use test-only isolated probes and explicitly observed faults; silence or a timeout alone must not count as successful isolation. Preserve the ordinary release graph and keep diagnostic test authority out of user-facing images.
 
 Design the separate administration/authentication boundary before making any control command interactive. Continue into lifecycle supervision only after those boundaries have executable tests.

@@ -61,7 +61,7 @@ static void execute(void)
         append("help | version | status | read <generation>\r\nNo administration commands.\r\n");
         break;
     case TCS_CMD_VERSION:
-        append("TCS 0.2-dev / read-only terminal\r\n");
+        append("TCS 0.2-dev / " TCS_PROFILE_NAME " / read-only terminal\r\n");
         break;
     case TCS_CMD_STATUS: {
         struct tcs_snapshot s = tcs_snapshot_response(microkit_ppcall(CLIENT_CHANNEL,
@@ -141,7 +141,7 @@ static void service(void)
 
 void init(void)
 {
-    append("TCS TERMINAL READY (read-only)\r\ntcs> ");
+    append("TCS TERMINAL READY (" TCS_PROFILE_NAME ", read-only)\r\ntcs> ");
     service();
 }
 

@@ -26,3 +26,7 @@ jobs:
         run: make terminal-smoke
       - name: Boot saved terminal
         run: make terminal-smoke-saved
+      - name: Build and exercise release-kernel terminal
+        run: make terminal-release-smoke
+      - name: Boot saved release-kernel terminal
+        run: make terminal-release-smoke-saved

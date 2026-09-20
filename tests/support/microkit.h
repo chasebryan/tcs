@@ -1,6 +1,7 @@
 /* Minimal host-only IPC fixture, not a replacement for the real kernel tests. */
 #ifndef TCS_TEST_MICROKIT_H
 #define TCS_TEST_MICROKIT_H
+#define TCS_HOST_TEST 1
 #include <assert.h>
 #include <stdint.h>
 typedef unsigned microkit_channel;

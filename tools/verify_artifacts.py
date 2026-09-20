@@ -43,7 +43,13 @@ def main():
     if (terminal.stat().st_size != record["terminal_image_bytes"] or
             actual["artifacts/terminal.img"] != record["terminal_image_sha256"]):
         raise SystemExit("Terminal image does not match build.json")
-    print("PASS saved image, source inputs, upstream source bundles, and licenses (SHA-256)")
+    release = ROOT / "artifacts/terminal-release.img"
+    release_record = record["release_terminal"]
+    if (release_record["config"] != "release" or
+            release.stat().st_size != release_record["image_bytes"] or
+            actual["artifacts/terminal-release.img"] != release_record["image_sha256"]):
+        raise SystemExit("Release-kernel terminal image does not match build.json")
+    print("PASS saved debug/release images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

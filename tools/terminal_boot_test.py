@@ -9,6 +9,33 @@ import tempfile
 import time
 
 
+def consume_boot(pending, profile):
+    banner = f"TCS TERMINAL READY ({profile}-kernel, read-only)\ntcs> ".encode()
+    if banner not in pending:
+        marker = b"TCS TERMINAL READY ("
+        start = pending.find(marker)
+        if start >= 0 and b"\n" in pending[start:]:
+            line = bytes(pending[start:]).split(b"\n", 1)[0]
+            if line != banner.split(b"\n", 1)[0]:
+                raise RuntimeError("Terminal image does not match requested kernel profile")
+        return False
+    start = pending.index(banner)
+    if profile == "release" and start != 0:
+        raise RuntimeError("Unexpected output before release terminal banner")
+    end = start + len(banner)
+    if b"MON|ERROR" in pending[:end]:
+        raise RuntimeError("Runtime fault during boot")
+    del pending[:end]
+    return True
+
+
+def denied_output(profile, audit_count):
+    # Debug tests observe audit sequence numbers. Release has no debug channel;
+    # its denial output alone does not establish the internal audit sequence.
+    audit = f"TCS audit decision {audit_count}\n" if profile == "debug" else ""
+    return (audit + "READ DENIED status=1\ntcs> ").encode()
+
+
 class Qmp:
     """Bounded local control connection used only by the emulator test harness."""
     def __init__(self, path):
@@ -74,6 +101,7 @@ def main():
     parser.add_argument("--qemu", default="qemu-system-aarch64")
     parser.add_argument("--image", required=True, type=Path)
     parser.add_argument("--log", required=True, type=Path)
+    parser.add_argument("--profile", choices=("debug", "release"), default="debug")
     args = parser.parse_args()
     # A short, private path also fits macOS's Unix-domain socket path limit.
     with tempfile.TemporaryDirectory(prefix="tcs-qmp-", dir="/tmp") as directory:
@@ -130,21 +158,16 @@ def run(args, control_path):
 
     try:
         qmp = Qmp(control_path)
-        banner = b"TCS TERMINAL READY (read-only)\ntcs> "
         deadline = time.monotonic() + 20
-        while banner not in pending:
+        while not consume_boot(pending, args.profile):
             pump(deadline)
-        end = pending.index(banner) + len(banner)
-        if b"MON|ERROR" in pending[:end]:
-            raise RuntimeError("Runtime fault during boot")
-        del pending[:end]
-        version = b"TCS 0.2-dev / read-only terminal\ntcs> "
+        version = f"TCS 0.2-dev / {args.profile}-kernel / read-only terminal\ntcs> ".encode()
         help_text = b"help | version | status | read <generation>\nNo administration commands.\ntcs> "
         invalid = b"ERROR unknown or malformed command\ntcs> "
         discarded = b"ERROR discarded input line\ntcs> "
         own_status = b"SELF state=restricted generation=0 object=0 rights=0\ntcs> "
         def denied(audit_count):
-            return f"TCS audit decision {audit_count}\nREAD DENIED status=1\ntcs> ".encode()
+            return denied_output(args.profile, audit_count)
         check(b"version\r\n", version)
         check(b"help\n", help_text)
         check(b"status\n", own_status)
@@ -181,11 +204,11 @@ def run(args, control_path):
         qmp.command("chardev-send-break", {"id": "uart"})
         expect_output(lost)
         check(b"read 1\x03", b"CANCELLED\ntcs> ", echo=b"^C\n")
-        check(b"read 1\n", denied(4))  # No interrupted read reached policy/audit.
+        check(b"read 1\n", denied(4))  # Debug audit count proves no interrupted read arrived.
         check(b"status\n", own_status)
         if pending:
             raise RuntimeError(f"Unexpected trailing output: {pending!r}")
-        print("PASS QEMU UART echo/editing, live status, injected serial breaks, discarded commands, and recovery")
+        print(f"PASS QEMU {args.profile}-kernel UART echo/editing, live status, injected serial breaks, discarded commands, and recovery")
     finally:
         if qmp is not None:
             qmp.close()

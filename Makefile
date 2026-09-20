@@ -8,19 +8,28 @@ MICROKIT_SDK ?= $(shell $(PYTHON) tools/fetch_tools.py --directory "$(TOOLS_DIR)
 
 BOARD := qemu_virt_aarch64
 CONFIG := debug
+ifneq ($(CONFIG),debug)
+$(error CONFIG must remain debug; use terminal-release-image for the separate release profile)
+endif
 SDK_BOARD = $(MICROKIT_SDK)/board/$(BOARD)/$(CONFIG)
+RELEASE_SDK_BOARD = $(MICROKIT_SDK)/board/$(BOARD)/release
+RELEASE_DIR := $(BUILD_DIR)/release
 SERVERS := console client storage policy audit
 IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,$(SERVERS)))
 TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
+RELEASE_IMAGES := $(addprefix $(RELEASE_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 HEADERS := $(wildcard include/tcs/*.h)
 HOST_FLAGS := -std=c11 -Wall -Wextra -Werror -pedantic -O1 -g -Iinclude
-TARGET_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
+TARGET_COMMON_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
     -ffreestanding -fno-stack-protector -fno-pic -fno-pie -nostdlib -O2 -g \
-    -Wall -Wextra -Werror -Iinclude -I"$(SDK_BOARD)/include"
+    -Wall -Wextra -Werror -Iinclude
+TARGET_FLAGS = $(TARGET_COMMON_FLAGS) -DTCS_DEBUG_PROFILE=1 -I"$(SDK_BOARD)/include"
+RELEASE_FLAGS = $(TARGET_COMMON_FLAGS) -DTCS_RELEASE_PROFILE=1 -I"$(RELEASE_SDK_BOARD)/include"
 export ZIG_GLOBAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-cache)
 export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 
 .PHONY: all test bootstrap image smoke smoke-saved verify-artifacts check-tools check-system terminal-image terminal-smoke terminal-run terminal-smoke-saved
+.PHONY: terminal-release-image terminal-release-smoke terminal-release-smoke-saved terminal-release-run
 .SECONDARY:
 all: test
 
@@ -28,6 +37,9 @@ bootstrap:
 	$(PYTHON) tools/fetch_tools.py --directory "$(TOOLS_DIR)"
 
 $(BUILD_DIR):
+	mkdir -p "$@"
+
+$(RELEASE_DIR):
 	mkdir -p "$@"
 
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
@@ -55,7 +67,7 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/serial_server_test"
 	"$(BUILD_DIR)/status_ipc_test"
 	"$(BUILD_DIR)/terminal_server_test"
-	$(PYTHON) -m unittest discover -s tests -p '*_test.py'
+	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
 	$(PYTHON) tools/check_system.py system/tcs.system
@@ -87,7 +99,7 @@ $(BUILD_DIR)/serial.elf: $(BUILD_DIR)/serial.o $(BUILD_DIR)/serial_core.o
 $(BUILD_DIR)/policy.elf: $(BUILD_DIR)/policy.o $(BUILD_DIR)/policy_core.o
 	"$(ZIG)" cc $(TARGET_FLAGS) $^ -L"$(SDK_BOARD)/lib" -Wl,-T,"$(SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
 
-$(BUILD_DIR)/%.elf: $(BUILD_DIR)/%.o
+$(addprefix $(BUILD_DIR)/,console.elf client.elf storage.elf audit.elf): $(BUILD_DIR)/%.elf: $(BUILD_DIR)/%.o
 	"$(ZIG)" cc $(TARGET_FLAGS) $< -L"$(SDK_BOARD)/lib" -Wl,-T,"$(SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
 
 $(BUILD_DIR)/loader.img: $(IMAGES) system/tcs.system | check-system
@@ -101,6 +113,42 @@ $(BUILD_DIR)/terminal.img: $(TERMINAL_IMAGES) system/terminal.system | check-sys
 	    --board $(BOARD) --config $(CONFIG) -o "$@" -r "$(BUILD_DIR)/terminal-report.txt"
 
 terminal-image: $(BUILD_DIR)/terminal.img
+
+# No release object, library, or image is shared with the debug profiles.
+$(RELEASE_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/%_core.o: lib/%.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/terminal.elf: $(RELEASE_DIR)/terminal.o $(RELEASE_DIR)/terminal_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/serial.elf: $(RELEASE_DIR)/serial.o $(RELEASE_DIR)/serial_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/policy.elf: $(RELEASE_DIR)/policy.o $(RELEASE_DIR)/policy_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(addprefix $(RELEASE_DIR)/,client.elf storage.elf audit.elf): $(RELEASE_DIR)/%.elf: $(RELEASE_DIR)/%.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $< -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/terminal.img: $(RELEASE_IMAGES) system/terminal.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/terminal.system --search-path "$(RELEASE_DIR)" \
+	    --board $(BOARD) --config release -o "$@" -r "$(RELEASE_DIR)/terminal-report.txt"
+
+terminal-release-image: $(RELEASE_DIR)/terminal.img
+
+terminal-release-smoke: terminal-release-image
+	$(PYTHON) tools/terminal_boot_test.py --profile release --qemu "$(QEMU)" --image "$(RELEASE_DIR)/terminal.img" --log "$(RELEASE_DIR)/terminal-boot.log"
+
+terminal-release-smoke-saved: verify-artifacts
+	$(PYTHON) tools/terminal_boot_test.py --profile release --qemu "$(QEMU)" --image artifacts/terminal-release.img --log "$(BUILD_DIR)/saved-terminal-release-boot.log"
+
+terminal-release-run: terminal-release-image
+	"$(QEMU)" -machine virt,virtualization=on -cpu cortex-a53 -m 2G -smp 1 \
+	    -display none -serial mon:stdio -nic none -accel tcg \
+	    -device loader,file=$(RELEASE_DIR)/terminal.img,addr=0x70000000,cpu-num=0
 
 terminal-smoke: terminal-image
 	$(PYTHON) tools/terminal_boot_test.py --qemu "$(QEMU)" --image "$(BUILD_DIR)/terminal.img" --log "$(BUILD_DIR)/terminal-boot.log"

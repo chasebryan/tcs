@@ -2,6 +2,7 @@
 #define TCS_IPC_H
 
 #include <microkit.h>
+#include "tcs/build_profile.h"
 #include "tcs/policy.h"
 
 /* Version 1 occupies the upper byte. Requests have exact word counts. */

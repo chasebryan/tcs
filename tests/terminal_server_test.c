@@ -66,8 +66,8 @@ int main(void)
     tx_limit = 0; feed("version\n"); init();
     assert(reads == 0 && input_head == 0); /* Output backpressure stops consumption. */
     tx_limit = 3; drain();
-    assert(strcmp(captured, "TCS TERMINAL READY (read-only)\r\ntcs> version\r\n"
-                           "TCS 0.2-dev / read-only terminal\r\ntcs> ") == 0);
+    assert(strcmp(captured, "TCS TERMINAL READY (host-test, read-only)\r\ntcs> version\r\n"
+                           "TCS 0.2-dev / host-test / read-only terminal\r\ntcs> ") == 0);
     feed("status\n"); drain();
     assert(status_calls == 1 && object_calls == 0);
     feed("read 1"); drain();

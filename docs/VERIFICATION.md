@@ -1,6 +1,6 @@
 # TCS seed verification — 2026-09-20
 
-Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_virt_aarch64/debug`, Zig 0.14.1; emulator: QEMU 11.1.1 using TCG.
+Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_virt_aarch64/debug` (seed/terminal) and `qemu_virt_aarch64/release` (separate terminal), Zig 0.14.1; emulator: QEMU 11.1.1 using TCG.
 
 | Check | Observed result |
 | --- | --- |
@@ -10,6 +10,10 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Terminal echo | All 256 byte values classified; bounded generated feedback, tab/backspace/delete cells, CRLF/cancel, no raw rejected controls |
 | Terminal backpressure | Sanitized runtime adapter test verifies partial/full TX, echo-before-service-call ordering, transport-loss rejection and fail-stop on malformed driver replies |
 | Runtime serial faults | Three QMP-injected UART breaks, with loss reports, rejection of interrupted commands, Enter/Ctrl-C recovery, and subsequent audit sequence checked in real QEMU |
+| Release-kernel UART | Same commands, editing, status, denials, and three break/recovery cases pass with no boot preamble or debug diagnostics; no internal audit-counter observation in release |
+| Profile guards | Valid debug/release/host-fixture headers accepted; missing/conflicting/mismatched flags rejected; host fixture rejected for freestanding compilation |
+| Build profile routing | All six release ELFs link only release libraries; debug build remains separate; ambiguous CONFIG override rejected |
+| Harness profile checks | Split banners accepted; wrong profile and release preamble rejected; debug monitor faults rejected; audit output expected only for debug |
 | Serial queue | Wrap, overflow/loss ordering, and 100,000 deterministic transitions under sanitizers |
 | Serial adapter | Mocked registers/IPC: malformed word counts, invalid byte values, unknown caller, full TX readiness, unrelated IRQ preservation, 64-read IRQ bound, error propagation |
 | Terminal graph | Exact six-domain graph, UART mapping/IRQ only in serial, one-way driver notification, no policy-admin or audit-query route; 15 negative mutations |
@@ -34,4 +38,4 @@ The first boot attempt used 1 GiB RAM and halted inside seL4 because this SDK ex
 
 These checks do not establish formal verification, production readiness, fault recovery, hardware support, cryptographic audit integrity, dynamic kernel-capability revocation, or security under concurrent in-flight operations. Independent bit-for-bit reproducibility and external review have not been established. Current remote validation is recorded per commit in [GitHub Actions](https://github.com/chasebryan/tcs/actions/workflows/check.yml).
 
-The terminal profile also uses the debug kernel: kernel debug output remains an alternate UART writer. Its device mapping boundary does not establish exclusive output ownership, authenticated input, or a trusted display path. Native mocked register tests are not physical-hardware evidence. See [terminal limits](TERMINAL.md).
+The ordinary terminal still uses the debug kernel and its alternate UART writer. The release-kernel terminal disables that SDK printing route and passes the same observable terminal scenarios, with separate saved image/report/transcript. It does not establish authenticated input, a trusted-display proof, or production readiness. The upstream `CONFIG_VERIFICATION_BUILD` flag does not establish formal verification of this configuration or TCS. Native mocked register tests are not physical-hardware evidence. See [terminal limits](TERMINAL.md).
