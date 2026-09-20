@@ -16,27 +16,27 @@
         <program_image path="audit.elf" />
     </protection_domain>
     <channel>
-        <end pd="console" id="0" pp="true" />
-        <end pd="policy" id="0" />
+        <end pd="console" id="0" pp="true" notify="false" />
+        <end pd="policy" id="0" notify="false" />
     </channel>
     <channel>
-        <end pd="console" id="1" pp="true" />
-        <end pd="client" id="0" />
+        <end pd="console" id="1" pp="true" notify="false" />
+        <end pd="client" id="0" notify="false" />
     </channel>
     <channel>
-        <end pd="client" id="1" pp="true" />
-        <end pd="storage" id="0" />
+        <end pd="client" id="1" pp="true" notify="false" />
+        <end pd="storage" id="0" notify="false" />
     </channel>
     <channel>
-        <end pd="storage" id="1" pp="true" />
-        <end pd="policy" id="1" />
+        <end pd="storage" id="1" pp="true" notify="false" />
+        <end pd="policy" id="1" notify="false" />
     </channel>
     <channel>
-        <end pd="policy" id="2" pp="true" />
-        <end pd="audit" id="0" />
+        <end pd="policy" id="2" pp="true" notify="false" />
+        <end pd="audit" id="0" notify="false" />
     </channel>
     <channel>
-        <end pd="console" id="2" pp="true" />
-        <end pd="audit" id="1" />
+        <end pd="console" id="2" pp="true" notify="false" />
+        <end pd="audit" id="1" notify="false" />
     </channel>
 </system>

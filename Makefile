@@ -19,7 +19,7 @@ TARGET_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
 export ZIG_GLOBAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-cache)
 export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 
-.PHONY: all test bootstrap image smoke smoke-saved verify-artifacts check-tools
+.PHONY: all test bootstrap image smoke smoke-saved verify-artifacts check-tools check-system
 .SECONDARY:
 all: test
 
@@ -32,10 +32,16 @@ $(BUILD_DIR):
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/policy.c tests/policy_test.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test
+$(BUILD_DIR)/terminal_test: lib/terminal.c tests/terminal_test.c include/tcs/terminal.h | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/terminal.c tests/terminal_test.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test check-system
 	"$(BUILD_DIR)/policy_test"
-	$(PYTHON) tools/check_system.py system/tcs.system
+	"$(BUILD_DIR)/terminal_test"
 	$(PYTHON) -m unittest discover -s tests -p '*_test.py'
+
+check-system:
+	$(PYTHON) tools/check_system.py system/tcs.system
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -54,7 +60,7 @@ $(BUILD_DIR)/policy.elf: $(BUILD_DIR)/policy.o $(BUILD_DIR)/policy_core.o
 $(BUILD_DIR)/%.elf: $(BUILD_DIR)/%.o
 	"$(ZIG)" cc $(TARGET_FLAGS) $< -L"$(SDK_BOARD)/lib" -Wl,-T,"$(SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
 
-$(BUILD_DIR)/loader.img: $(IMAGES) system/tcs.system
+$(BUILD_DIR)/loader.img: $(IMAGES) system/tcs.system | check-system
 	"$(MICROKIT_SDK)/bin/microkit" system/tcs.system --search-path "$(BUILD_DIR)" \
 	    --board $(BOARD) --config $(CONFIG) -o "$@" -r "$(BUILD_DIR)/report.txt"
 

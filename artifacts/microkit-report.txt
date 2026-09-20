@@ -100,14 +100,6 @@
 			-> Object: 'pud_audit'
 		* Slot: 4
 			-> Object: 'reply_audit'
-		* Slot: 10
-			-> Object: 'ntfn_policy'
-			-> Rights: Read, Write
-			-> Badge: 0x4
-		* Slot: 11
-			-> Object: 'ntfn_console'
-			-> Rights: Read, Write
-			-> Badge: 0x4
 
 	- CNode: 'cnode_client'
 		* Slot: 1
@@ -122,14 +114,6 @@
 			-> Object: 'pud_client'
 		* Slot: 4
 			-> Object: 'reply_client'
-		* Slot: 10
-			-> Object: 'ntfn_console'
-			-> Rights: Read, Write
-			-> Badge: 0x2
-		* Slot: 11
-			-> Object: 'ntfn_storage'
-			-> Rights: Read, Write
-			-> Badge: 0x1
 		* Slot: 75
 			-> Object: 'ep_storage'
 			-> Rights: Read, Write, Grant
@@ -148,18 +132,6 @@
 			-> Object: 'pud_console'
 		* Slot: 4
 			-> Object: 'reply_console'
-		* Slot: 10
-			-> Object: 'ntfn_policy'
-			-> Rights: Read, Write
-			-> Badge: 0x1
-		* Slot: 11
-			-> Object: 'ntfn_client'
-			-> Rights: Read, Write
-			-> Badge: 0x1
-		* Slot: 12
-			-> Object: 'ntfn_audit'
-			-> Rights: Read, Write
-			-> Badge: 0x2
 		* Slot: 74
 			-> Object: 'ep_policy'
 			-> Rights: Read, Write, Grant
@@ -204,18 +176,6 @@
 			-> Object: 'pud_policy'
 		* Slot: 4
 			-> Object: 'reply_policy'
-		* Slot: 10
-			-> Object: 'ntfn_console'
-			-> Rights: Read, Write
-			-> Badge: 0x1
-		* Slot: 11
-			-> Object: 'ntfn_storage'
-			-> Rights: Read, Write
-			-> Badge: 0x2
-		* Slot: 12
-			-> Object: 'ntfn_audit'
-			-> Rights: Read, Write
-			-> Badge: 0x1
 		* Slot: 76
 			-> Object: 'ep_audit'
 			-> Rights: Read, Write, Grant
@@ -234,14 +194,6 @@
 			-> Object: 'pud_storage'
 		* Slot: 4
 			-> Object: 'reply_storage'
-		* Slot: 10
-			-> Object: 'ntfn_client'
-			-> Rights: Read, Write
-			-> Badge: 0x2
-		* Slot: 11
-			-> Object: 'ntfn_policy'
-			-> Rights: Read, Write
-			-> Badge: 0x2
 		* Slot: 75
 			-> Object: 'ep_policy'
 			-> Rights: Read, Write, Grant

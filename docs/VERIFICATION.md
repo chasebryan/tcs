@@ -5,8 +5,11 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Check | Observed result |
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
+| Terminal input core | Read-only command allowlist; exact-span parsing; integer overflow; line overflow, control-byte rejection, and recovery under sanitizers |
+| Terminal byte sequences | 100,000 deterministic input bytes preserve bounded-buffer invariants; not a coverage-guided fuzzing claim |
 | Transition sequences | 50,000 deterministic steps; generation monotonicity, subject separation, state/right consistency, and authorized grants checked |
-| Graph validation | Five domains, six declared channel pairs, exact identity bindings, increasing RPC priorities |
+| Graph validation | Five domains, six declared channel pairs, exact program/identity bindings, no extra resources, increasing RPC priorities, and all unused notification rights disabled |
+| Graph rejection tests | Extra memory/device/IRQ/child authority, wrong images/identities, altered scheduling, duplicate/missing elements, and implicit notification rights rejected; checks stay active under Python -O |
 | Cross-compilation | Five freestanding AArch64 server ELFs linked against the pinned SDK |
 | Image construction | Microkit constructed the seL4 system image |
 | QEMU boot | Kernel entered userspace; all five TCS domains started |

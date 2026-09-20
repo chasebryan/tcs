@@ -8,6 +8,8 @@ Repository: [chasebryan/tcs](https://github.com/chasebryan/tcs). TCS replaces th
 
 The console runs an automated scenario; it is not yet an interactive terminal. Storage serves one read-only fixture. Hardware drivers, persistent storage, signed updates, dynamic process creation, and a user login system come in later milestones. The typed capability design will extend the seed's versioned operation contracts; compile-time typed capability handles are not implemented yet.
 
+Development toward milestone 0.2 has begun: a host-tested, bounded [terminal input core](docs/TERMINAL.md) is available, and the seed's unused notification permissions are disabled. The parser is not yet connected to an interactive runtime. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and the next acceptance gate.
+
 ## Run
 
 Host tests require a C11 compiler, Make, and Python 3.9+:
@@ -53,6 +55,7 @@ The dynamic behavior currently changes application authorization inside a fixed 
 | `system/tcs.system` | Five protection domains and their permitted communication paths |
 | `servers/` | Freestanding native Microkit programs |
 | `lib/policy.c` | Allocation-free policy state machine shared by runtime and host tests |
+| `lib/terminal.c` | Bounded line editing and read-only command parsing; host-tested, not yet wired to runtime |
 | `include/tcs/` | Policy types and versioned IPC definitions |
 | `tests/policy_test.c` | Invariants, negative cases, audit failure, counter exhaustion, transition sequences |
 | `tools/` | Pinned toolchain retrieval, topology check, automated QEMU boot |

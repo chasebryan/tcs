@@ -15,9 +15,9 @@ LDR|INFO: region: 0x00000000   addr: 0x0000000060000000   size: 0x00000000002580
 LDR|INFO: region: 0x00000001   addr: 0x0000000060258000   size: 0x000000000000b2b8   offset: 0x0000000000258000   type: 0x0000000000000001
 LDR|INFO: region: 0x00000002   addr: 0x00000000602732b8   size: 0x000000000001475c   offset: 0x00000000002632b8   type: 0x0000000000000001
 LDR|INFO: region: 0x00000003   addr: 0x0000000060297a18   size: 0x0000000000010088   offset: 0x0000000000277a14   type: 0x0000000000000001
-LDR|INFO: region: 0x00000004   addr: 0x00000000602a8000   size: 0x0000000000003ed0   offset: 0x0000000000287a9c   type: 0x0000000000000001
-LDR|INFO: region: 0x00000005   addr: 0x00000000602ac000   size: 0x0000000000012000   offset: 0x000000000028b96c   type: 0x0000000000000001
-LDR|INFO: region: 0x00000006   addr: 0x00000000602bf000   size: 0x00000000000001f8   offset: 0x000000000029d96c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000004   addr: 0x00000000602a8000   size: 0x0000000000003cf0   offset: 0x0000000000287a9c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000005   addr: 0x00000000602ac000   size: 0x0000000000012000   offset: 0x000000000028b78c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000006   addr: 0x00000000602bf000   size: 0x00000000000001f8   offset: 0x000000000029d78c   type: 0x0000000000000001
 LDR|INFO: copying region 0x00000000
 LDR|INFO: copying region 0x00000001
 LDR|INFO: copying region 0x00000002
@@ -187,4 +187,4 @@ PASS full audit denies grants
 TCS audit unavailable: grants/reads denied; reductions remain effective
 PASS revoke reports missing audit
 TCS SEED PASS
-qemu-system-aarch64: terminating on signal 15 from pid 50103 (<unknown process>)
+qemu-system-aarch64: terminating on signal 15 from pid 53022 (<unknown process>)
