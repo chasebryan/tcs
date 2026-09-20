@@ -3,6 +3,7 @@
 #define _DARWIN_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #include <errno.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -91,10 +92,10 @@ static int directory(const char *path, bool create)
     if (!private_dir(fd) || !outside_repository(fd)) { close(fd); return -1; }
     return fd;
 }
-static bool read_file(int dir, const char *name, uint8_t *bytes, size_t length)
+static int read_file_open(int dir, const char *name, uint8_t *bytes, size_t length)
 {
     int fd = openat(dir, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK);
-    if (fd < 0) return false;
+    if (fd < 0) return -1;
     struct stat s; bool ok = fstat(fd, &s) == 0 && S_ISREG(s.st_mode) &&
         s.st_uid == getuid() && s.st_nlink == 1 && (s.st_mode & 07777) == 0600 &&
         s.st_size == (off_t)length && no_acl(fd);
@@ -106,9 +107,16 @@ static bool read_file(int dir, const char *name, uint8_t *bytes, size_t length)
     }
     uint8_t extra;
     if (ok) { ssize_t n; do { n = read(fd, &extra, 1); } while (n < 0 && errno == EINTR); ok = n == 0; }
-    if (close(fd)) ok = false;
-    if (!ok) crypto_wipe(bytes, length);
-    return ok;
+    if (ok && lseek(fd, 0, SEEK_SET) != 0) ok = false;
+    if (!ok) { close(fd); crypto_wipe(bytes, length); return -1; }
+    return fd;
+}
+static bool read_file(int dir, const char *name, uint8_t *bytes, size_t length)
+{
+    int fd = read_file_open(dir, name, bytes, length);
+    if (fd < 0) return false;
+    if (close(fd)) { crypto_wipe(bytes, length); return false; }
+    return true;
 }
 static bool write_new(int dir, const char *name, const uint8_t *bytes, size_t length)
 {
@@ -245,31 +253,108 @@ static bool review_or_sign(int identity_fd, const char *path, char **args, const
 done:
     crypto_wipe(secret, sizeof secret); close(session_fd); return ok;
 }
+static bool absolute_argument(const char *path)
+{
+    if (path[0] != '/') return false;
+    for (size_t i = 0; path[i]; ++i)
+        if (i >= 4095 || (unsigned char)path[i] < 32 || path[i] == ',' || path[i] == 127) return false;
+    return true;
+}
+static bool close_other_descriptors(void)
+{
+    DIR *directory = opendir("/dev/fd");
+    if (!directory) return false;
+    int scanner = dirfd(directory); bool ok = true;
+    struct dirent *entry;
+    errno = 0;
+    while ((entry = readdir(directory))) {
+        uint64_t value;
+        if (number(entry->d_name, &value) && value <= INT32_MAX) {
+            int fd = (int)value;
+            if (fd > 2 && fd != scanner && close(fd) && errno != EBADF) ok = false;
+        }
+        errno = 0;
+    }
+    if (errno) ok = false;
+    if (closedir(directory)) ok = false;
+    return ok;
+}
+static bool launch_guest(int identity_fd, const char *session, const char *image, const char *qemu)
+{
+    if (!absolute_argument(image) || !absolute_argument(qemu)) return false;
+    int dir = directory(session, false), image_fd = -1;
+    if (dir < 0) return false;
+    uint8_t context[112], *image_bytes = NULL; struct tcs_launch launch; struct tcs_identity identity;
+    bool valid = identity_read(identity_fd, &identity) && read_file(dir, "launch.context", context, sizeof context) &&
+        tcs_launch_decode(context, sizeof context, MODE, &launch) &&
+        !memcmp(identity.realm, launch.identity.realm, 32) && !memcmp(identity.public_key, launch.identity.public_key, 32);
+    if (!valid) goto done;
+    image_fd = open(image, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK);
+    struct stat image_stat;
+    if (image_fd < 0 || fstat(image_fd, &image_stat) || !S_ISREG(image_stat.st_mode) ||
+        image_stat.st_size <= 0 || image_stat.st_size > 64*1024*1024) goto done;
+    /* Irreversibly consume the session BEFORE exec; failures never unreserve. */
+    if (!write_new(dir, "launch.used", context, sizeof context)) goto done;
+    /* QEMU opens image paths repeatedly. Darwin /dev/fd shares offsets,
+     * including the loader's seek-to-end size probe. Use exclusive private
+     * copies in a descriptor-pinned working directory on both host systems. */
+    size_t size = (size_t)image_stat.st_size, done = 0;
+    image_bytes = malloc(size);
+    if (!image_bytes) goto done;
+    while (done < size) {
+        ssize_t n = read(image_fd, image_bytes + done, size - done);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) goto done;
+        done += (size_t)n;
+    }
+    uint8_t extra; ssize_t n;
+    do { n = read(image_fd, &extra, 1); } while (n < 0 && errno == EINTR);
+    if (n != 0 || !write_new(dir, "launch.img", image_bytes, size)) goto done;
+    free(image_bytes); image_bytes = NULL;
+    if (fchdir(dir)) goto done;
+    char loader[] = "loader,file=launch.img,addr=0x70000000,cpu-num=0,force-raw=on";
+    char firmware[] = "name=opt/tcs/launch-context,file=launch.used";
+    char *const arguments[] = {(char *)qemu, "-machine", "virt,virtualization=on", "-cpu", "cortex-a53",
+        "-m", "2G", "-smp", "1", "-display", "none", "-no-reboot",
+        "-chardev", "stdio,id=uart,signal=off", "-serial", "chardev:uart", "-monitor", "none",
+        "-nic", "none", "-accel", "tcg", "-global", "fw_cfg_mem.dma_enabled=off",
+        "-device", loader, "-fw_cfg", firmware, NULL};
+    if (!close_other_descriptors()) goto done;
+    execv(qemu, arguments);
+done:
+    free(image_bytes);
+    if (image_fd >= 0) close(image_fd);
+    close(dir); return false;
+}
 static int usage(void)
 {
-    fputs("Experimental TCS host tool (no guest launch or serial transport):\n"
+    fputs("Experimental TCS host tool (no automatic request submission):\n"
         "  tcs-operator create NEW_IDENTITY_DIR --acknowledge-experimental\n"
         "  tcs-operator show IDENTITY_DIR\n"
         "  tcs-operator context IDENTITY_DIR NEW_SESSION_DIR --acknowledge-experimental\n"
         "  tcs-operator review IDENTITY_DIR SESSION_DIR OP SUBJECT SEQUENCE GENERATION\n"
         "  tcs-operator sign IDENTITY_DIR SESSION_DIR OP SUBJECT SEQUENCE GENERATION APPROVAL\n"
+        "  tcs-operator launch IDENTITY_DIR SESSION_DIR IMAGE QEMU --acknowledge-experimental\n"
         "OP: grant | revoke | quarantine | restore. Use canonical decimal numbers.\n"
         "Use absolute real paths outside Git checkouts; no symlink components.\n"
-        "No key import, overwrite, retry, receipt-based recovery, or guest provisioning.\n", stderr);
+        "Launch consumes the session even if exec fails. No key import, overwrite, retry, or receipt recovery.\n", stderr);
     return 2;
 }
 int main(int argc, char **argv)
 {
     struct rlimit limit = {0, 0};
     if (getuid() != geteuid() || getgid() != getegid() || setrlimit(RLIMIT_CORE, &limit)) return 1;
+    for (int fd = 0; fd < 3; ++fd) if (fcntl(fd, F_GETFD) < 0) return 1;
     (void)umask(077);
     if (argc < 2) return usage();
     bool create = !strcmp(argv[1], "create"), show = !strcmp(argv[1], "show"), context = !strcmp(argv[1], "context");
     bool review = !strcmp(argv[1], "review"), sign = !strcmp(argv[1], "sign");
+    bool launch = !strcmp(argv[1], "launch");
     if ((create && (argc != 4 || strcmp(argv[3], "--acknowledge-experimental"))) ||
         (context && (argc != 5 || strcmp(argv[4], "--acknowledge-experimental"))) ||
         (show && argc != 3) || (review && argc != 8) || (sign && argc != 9) ||
-        !(create || show || context || review || sign)) return usage();
+        (launch && (argc != 7 || strcmp(argv[6], "--acknowledge-experimental"))) ||
+        !(create || show || context || review || sign || launch)) return usage();
     bool ok = false; int fd = -1;
     if (create) ok = create_identity(argv[2]);
     else {
@@ -280,6 +365,7 @@ int main(int argc, char **argv)
                 ok = identity_read(fd, &identity);
                 if (ok) { display("realm", identity.realm); display("public_key", identity.public_key); }
             } else if (context) ok = context_create(fd, argv[3]);
+            else if (launch) ok = launch_guest(fd, argv[3], argv[4], argv[5]);
             else ok = review_or_sign(fd, argv[3], argv + 4, sign ? argv[8] : NULL);
             close(fd);
         }

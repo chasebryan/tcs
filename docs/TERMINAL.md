@@ -2,6 +2,8 @@
 
 Status: host-tested core and real QEMU UART runtime, with separate debug-kernel and release-kernel images. The five-domain seed remains unchanged in role; the six-domain terminal is a separate development boot profile.
 
+A separately selected eight-domain [signed interactive profile](OPERATOR.md) now adds `submit`. It accepts exactly 384 lowercase hex digits into a private 192-byte buffer, then calls an isolated administrator which verifies the signature/context/sequence before forwarding to policy. It does not change this document's ordinary six-domain profile. Whole-frame discard on malformed input or UART loss, echo-before-submit, Ctrl-C cancellation, exact IPC, and correlated receipt display are covered by native and real UART tests. Replies are not authenticated to the host; public-fixture tests are not evidence of successful real-operator provisioning.
+
 ## First input contract
 
 The terminal core in `lib/terminal.c` is allocation-free and uses a 128-byte line buffer, with at most 127 input bytes plus a terminator. Parsing always uses an explicit byte length, so callers do not have to supply a terminated string. Commands are case-sensitive:

@@ -1,0 +1,547 @@
+# Initial Task (CapDL Initialiser) Details
+
+# IRQ Details
+	- IRQ: 'irq_33_serial'
+		* Number: 33
+		* Trigger: level
+		* CPU: 0
+
+
+# TCB Details
+	- TCB: 'tcb_administrator'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 25
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_administrator_root'
+			-> VSpace: 'pud_administrator'
+			-> IPC Buffer: 'frame_ipcbuf_administrator'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_administrator'
+			-> Notification: 'ntfn_administrator'
+
+	- TCB: 'tcb_audit'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 50
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_audit_root'
+			-> VSpace: 'pud_audit'
+			-> IPC Buffer: 'frame_ipcbuf_audit'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_audit'
+			-> Notification: 'ntfn_audit'
+
+	- TCB: 'tcb_bootstrap'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 70
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_bootstrap_root'
+			-> VSpace: 'pud_bootstrap'
+			-> IPC Buffer: 'frame_ipcbuf_bootstrap'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_bootstrap'
+			-> Notification: 'ntfn_bootstrap'
+
+	- TCB: 'tcb_client'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 20
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_client_root'
+			-> VSpace: 'pud_client'
+			-> IPC Buffer: 'frame_ipcbuf_client'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_client'
+			-> Notification: 'ntfn_client'
+
+	- TCB: 'tcb_monitor'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 255
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> VSpace: 'pud_monitor'
+			-> IPC Buffer: 'frame_ipcbuf_monitor'
+			-> CSpace: 'cnode_monitor'
+			-> Scheduling Context: 'sched_context_monitor'
+
+	- TCB: 'tcb_policy'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 40
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_policy_root'
+			-> VSpace: 'pud_policy'
+			-> IPC Buffer: 'frame_ipcbuf_policy'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_policy'
+			-> Notification: 'ntfn_policy'
+
+	- TCB: 'tcb_serial'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 60
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_serial_root'
+			-> VSpace: 'pud_serial'
+			-> IPC Buffer: 'frame_ipcbuf_serial'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_serial'
+			-> Notification: 'ntfn_serial'
+
+	- TCB: 'tcb_storage'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 30
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_storage_root'
+			-> VSpace: 'pud_storage'
+			-> IPC Buffer: 'frame_ipcbuf_storage'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_storage'
+			-> Notification: 'ntfn_storage'
+
+	- TCB: 'tcb_terminal'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 10
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_terminal_root'
+			-> VSpace: 'pud_terminal'
+			-> IPC Buffer: 'frame_ipcbuf_terminal'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_terminal'
+			-> Notification: 'ntfn_terminal'
+
+
+# CNode Details
+	- CNode: 'cnode_administrator'
+		* Slot: 1
+			-> Object: 'ep_administrator'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x3
+		* Slot: 3
+			-> Object: 'pud_administrator'
+		* Slot: 4
+			-> Object: 'reply_administrator'
+		* Slot: 75
+			-> Object: 'ep_bootstrap'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+		* Slot: 76
+			-> Object: 'ep_policy'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_audit'
+		* Slot: 1
+			-> Object: 'ep_audit'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x6
+		* Slot: 3
+			-> Object: 'pud_audit'
+		* Slot: 4
+			-> Object: 'reply_audit'
+
+	- CNode: 'cnode_bootstrap'
+		* Slot: 1
+			-> Object: 'ep_bootstrap'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8
+		* Slot: 3
+			-> Object: 'pud_bootstrap'
+		* Slot: 4
+			-> Object: 'reply_bootstrap'
+
+	- CNode: 'cnode_client'
+		* Slot: 1
+			-> Object: 'ep_client'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x2
+		* Slot: 3
+			-> Object: 'pud_client'
+		* Slot: 4
+			-> Object: 'reply_client'
+		* Slot: 75
+			-> Object: 'ep_storage'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_monitor'
+		* Slot: 1
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'reply_monitor'
+		* Slot: 10
+			-> Object: 'tcb_terminal'
+		* Slot: 11
+			-> Object: 'tcb_client'
+		* Slot: 12
+			-> Object: 'tcb_administrator'
+		* Slot: 13
+			-> Object: 'tcb_storage'
+		* Slot: 14
+			-> Object: 'tcb_policy'
+		* Slot: 15
+			-> Object: 'tcb_audit'
+		* Slot: 16
+			-> Object: 'tcb_serial'
+		* Slot: 17
+			-> Object: 'tcb_bootstrap'
+
+	- CNode: 'cnode_policy'
+		* Slot: 1
+			-> Object: 'ep_policy'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x5
+		* Slot: 3
+			-> Object: 'pud_policy'
+		* Slot: 4
+			-> Object: 'reply_policy'
+		* Slot: 76
+			-> Object: 'ep_audit'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_serial'
+		* Slot: 1
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x7
+		* Slot: 3
+			-> Object: 'pud_serial'
+		* Slot: 4
+			-> Object: 'reply_serial'
+		* Slot: 11
+			-> Object: 'ntfn_terminal'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 138
+			-> Object: 'irq_33_serial'
+
+	- CNode: 'cnode_storage'
+		* Slot: 1
+			-> Object: 'ep_storage'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x4
+		* Slot: 3
+			-> Object: 'pud_storage'
+		* Slot: 4
+			-> Object: 'reply_storage'
+		* Slot: 75
+			-> Object: 'ep_policy'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+
+	- CNode: 'cnode_terminal'
+		* Slot: 1
+			-> Object: 'ntfn_terminal'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x1
+		* Slot: 3
+			-> Object: 'pud_terminal'
+		* Slot: 4
+			-> Object: 'reply_terminal'
+		* Slot: 74
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+		* Slot: 75
+			-> Object: 'ep_client'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+		* Slot: 76
+			-> Object: 'ep_administrator'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_administrator_root'
+		* Slot: 0
+			-> Object: 'cnode_administrator'
+
+	- CNode: 'cnode_audit_root'
+		* Slot: 0
+			-> Object: 'cnode_audit'
+
+	- CNode: 'cnode_bootstrap_root'
+		* Slot: 0
+			-> Object: 'cnode_bootstrap'
+
+	- CNode: 'cnode_client_root'
+		* Slot: 0
+			-> Object: 'cnode_client'
+
+	- CNode: 'cnode_policy_root'
+		* Slot: 0
+			-> Object: 'cnode_policy'
+
+	- CNode: 'cnode_serial_root'
+		* Slot: 0
+			-> Object: 'cnode_serial'
+
+	- CNode: 'cnode_storage_root'
+		* Slot: 0
+			-> Object: 'cnode_storage'
+
+	- CNode: 'cnode_terminal_root'
+		* Slot: 0
+			-> Object: 'cnode_terminal'
+
+
+# Architecture Specific Details
+
+# Kernel Objects Details: ID, Type, Name, Physical Address
+	0 - Page(4 KiB): 'frame_mr_uart_000000000' @ 0x000009000000
+	1 - Page(4 KiB): 'frame_mr_fwcfg_000000000' @ 0x000009020000
+	2 - CNode: 'cnode_administrator' @ 0x000060000000
+	3 - CNode: 'cnode_audit' @ 0x000060004000
+	4 - CNode: 'cnode_bootstrap' @ 0x000060008000
+	5 - CNode: 'cnode_client' @ 0x00006000c000
+	6 - CNode: 'cnode_monitor' @ 0x0000602dc000
+	7 - CNode: 'cnode_policy' @ 0x0000602e0000
+	8 - CNode: 'cnode_serial' @ 0x0000602e4000
+	9 - CNode: 'cnode_storage' @ 0x0000602e8000
+	10 - CNode: 'cnode_terminal' @ 0x0000602ec000
+	11 - PageTable: 'pud_administrator' @ 0x0000602da000
+	12 - PageTable: 'pud_audit' @ 0x0000602f0000
+	13 - PageTable: 'pud_bootstrap' @ 0x0000602f2000
+	14 - PageTable: 'pud_client' @ 0x0000602f4000
+	15 - PageTable: 'pud_monitor' @ 0x0000602f6000
+	16 - PageTable: 'pud_policy' @ 0x0000602f8000
+	17 - PageTable: 'pud_serial' @ 0x0000602fa000
+	18 - PageTable: 'pud_storage' @ 0x0000602fc000
+	19 - PageTable: 'pud_terminal' @ 0x0000602fe000
+	20 - Page(4 KiB): 'frame_administrator_stack_000000000' @ 0x0000602d9000
+	21 - Page(4 KiB): 'frame_administrator_stack_000000001' @ 0x000060300000
+	22 - Page(4 KiB): 'frame_audit_stack_000000000' @ 0x000060301000
+	23 - Page(4 KiB): 'frame_audit_stack_000000001' @ 0x000060302000
+	24 - Page(4 KiB): 'frame_bootstrap_stack_000000000' @ 0x000060303000
+	25 - Page(4 KiB): 'frame_bootstrap_stack_000000001' @ 0x000060304000
+	26 - Page(4 KiB): 'frame_client_stack_000000000' @ 0x000060305000
+	27 - Page(4 KiB): 'frame_client_stack_000000001' @ 0x000060306000
+	28 - Page(4 KiB): 'frame_elf_administrator_000000000' @ 0x000060307000
+	29 - Page(4 KiB): 'frame_elf_administrator_000000001' @ 0x000060308000
+	30 - Page(4 KiB): 'frame_elf_administrator_000000002' @ 0x000060309000
+	31 - Page(4 KiB): 'frame_elf_administrator_000000003' @ 0x00006030a000
+	32 - Page(4 KiB): 'frame_elf_administrator_000000004' @ 0x00006030b000
+	33 - Page(4 KiB): 'frame_elf_administrator_000000005' @ 0x00006030c000
+	34 - Page(4 KiB): 'frame_elf_administrator_000000006' @ 0x00006030d000
+	35 - Page(4 KiB): 'frame_elf_administrator_000000007' @ 0x00006030e000
+	36 - Page(4 KiB): 'frame_elf_administrator_000000008' @ 0x00006030f000
+	37 - Page(4 KiB): 'frame_elf_administrator_000000009' @ 0x000060310000
+	38 - Page(4 KiB): 'frame_elf_administrator_000000010' @ 0x000060311000
+	39 - Page(4 KiB): 'frame_elf_administrator_000000011' @ 0x000060312000
+	40 - Page(4 KiB): 'frame_elf_administrator_000000012' @ 0x000060313000
+	41 - Page(4 KiB): 'frame_elf_administrator_000000013' @ 0x000060314000
+	42 - Page(4 KiB): 'frame_elf_administrator_000000014' @ 0x000060315000
+	43 - Page(4 KiB): 'frame_elf_administrator_000000015' @ 0x000060316000
+	44 - Page(4 KiB): 'frame_elf_administrator_000000016' @ 0x000060317000
+	45 - Page(4 KiB): 'frame_elf_administrator_000000017' @ 0x000060318000
+	46 - Page(4 KiB): 'frame_elf_administrator_000000018' @ 0x000060319000
+	47 - Page(4 KiB): 'frame_elf_administrator_000000019' @ 0x00006031a000
+	48 - Page(4 KiB): 'frame_elf_administrator_000000020' @ 0x00006031b000
+	49 - Page(4 KiB): 'frame_elf_administrator_000000021' @ 0x00006031c000
+	50 - Page(4 KiB): 'frame_elf_administrator_000000022' @ 0x00006031d000
+	51 - Page(4 KiB): 'frame_elf_administrator_000000023' @ 0x00006031e000
+	52 - Page(4 KiB): 'frame_elf_administrator_000000024' @ 0x00006031f000
+	53 - Page(4 KiB): 'frame_elf_administrator_000000025' @ 0x000060320000
+	54 - Page(4 KiB): 'frame_elf_administrator_000000026' @ 0x000060321000
+	55 - Page(4 KiB): 'frame_elf_administrator_000000027' @ 0x000060322000
+	56 - Page(4 KiB): 'frame_elf_administrator_000000028' @ 0x000060323000
+	57 - Page(4 KiB): 'frame_elf_administrator_000000029' @ 0x000060324000
+	58 - Page(4 KiB): 'frame_elf_administrator_000000030' @ 0x000060325000
+	59 - Page(4 KiB): 'frame_elf_administrator_000000031' @ 0x000060326000
+	60 - Page(4 KiB): 'frame_elf_administrator_000000032' @ 0x000060327000
+	61 - Page(4 KiB): 'frame_elf_administrator_000000033' @ 0x000060328000
+	62 - Page(4 KiB): 'frame_elf_audit_000000000' @ 0x000060329000
+	63 - Page(4 KiB): 'frame_elf_audit_000000001' @ 0x00006032a000
+	64 - Page(4 KiB): 'frame_elf_bootstrap_000000000' @ 0x00006032b000
+	65 - Page(4 KiB): 'frame_elf_bootstrap_000000001' @ 0x00006032c000
+	66 - Page(4 KiB): 'frame_elf_bootstrap_000000002' @ 0x00006032d000
+	67 - Page(4 KiB): 'frame_elf_bootstrap_000000003' @ 0x00006032e000
+	68 - Page(4 KiB): 'frame_elf_bootstrap_000000004' @ 0x00006032f000
+	69 - Page(4 KiB): 'frame_elf_bootstrap_000000005' @ 0x000060330000
+	70 - Page(4 KiB): 'frame_elf_bootstrap_000000006' @ 0x000060331000
+	71 - Page(4 KiB): 'frame_elf_client_000000000' @ 0x000060332000
+	72 - Page(4 KiB): 'frame_elf_client_000000001' @ 0x000060333000
+	73 - Page(4 KiB): 'frame_elf_monitor_000000000' @ 0x000060334000
+	74 - Page(4 KiB): 'frame_elf_monitor_000000001' @ 0x000060335000
+	75 - Page(4 KiB): 'frame_elf_monitor_000000002' @ 0x000060336000
+	76 - Page(4 KiB): 'frame_elf_monitor_000000003' @ 0x000060337000
+	77 - Page(4 KiB): 'frame_elf_monitor_000000004' @ 0x000060338000
+	78 - Page(4 KiB): 'frame_elf_monitor_000000005' @ 0x000060339000
+	79 - Page(4 KiB): 'frame_elf_policy_000000000' @ 0x00006033a000
+	80 - Page(4 KiB): 'frame_elf_policy_000000001' @ 0x00006033b000
+	81 - Page(4 KiB): 'frame_elf_policy_000000002' @ 0x00006033c000
+	82 - Page(4 KiB): 'frame_elf_serial_000000000' @ 0x00006033d000
+	83 - Page(4 KiB): 'frame_elf_serial_000000001' @ 0x00006033e000
+	84 - Page(4 KiB): 'frame_elf_storage_000000000' @ 0x00006033f000
+	85 - Page(4 KiB): 'frame_elf_storage_000000001' @ 0x000060340000
+	86 - Page(4 KiB): 'frame_elf_terminal_000000000' @ 0x000060341000
+	87 - Page(4 KiB): 'frame_elf_terminal_000000001' @ 0x000060342000
+	88 - Page(4 KiB): 'frame_elf_terminal_000000002' @ 0x000060343000
+	89 - Page(4 KiB): 'frame_elf_terminal_000000003' @ 0x000060344000
+	90 - Page(4 KiB): 'frame_elf_terminal_000000004' @ 0x000060345000
+	91 - Page(4 KiB): 'frame_elf_terminal_000000005' @ 0x000060346000
+	92 - Page(4 KiB): 'frame_elf_terminal_000000006' @ 0x000060347000
+	93 - Page(4 KiB): 'frame_elf_terminal_000000007' @ 0x000060348000
+	94 - Page(4 KiB): 'frame_ipcbuf_administrator' @ 0x000060349000
+	95 - Page(4 KiB): 'frame_ipcbuf_audit' @ 0x00006034a000
+	96 - Page(4 KiB): 'frame_ipcbuf_bootstrap' @ 0x00006034b000
+	97 - Page(4 KiB): 'frame_ipcbuf_client' @ 0x00006034c000
+	98 - Page(4 KiB): 'frame_ipcbuf_monitor' @ 0x00006034d000
+	99 - Page(4 KiB): 'frame_ipcbuf_policy' @ 0x00006034e000
+	100 - Page(4 KiB): 'frame_ipcbuf_serial' @ 0x00006034f000
+	101 - Page(4 KiB): 'frame_ipcbuf_storage' @ 0x000060350000
+	102 - Page(4 KiB): 'frame_ipcbuf_terminal' @ 0x000060351000
+	103 - Page(4 KiB): 'frame_monitor_stack' @ 0x000060352000
+	104 - Page(4 KiB): 'frame_policy_stack_000000000' @ 0x000060353000
+	105 - Page(4 KiB): 'frame_policy_stack_000000001' @ 0x000060354000
+	106 - Page(4 KiB): 'frame_serial_stack_000000000' @ 0x000060355000
+	107 - Page(4 KiB): 'frame_serial_stack_000000001' @ 0x000060356000
+	108 - Page(4 KiB): 'frame_storage_stack_000000000' @ 0x000060357000
+	109 - Page(4 KiB): 'frame_storage_stack_000000001' @ 0x000060358000
+	110 - Page(4 KiB): 'frame_terminal_stack_000000000' @ 0x000060359000
+	111 - Page(4 KiB): 'frame_terminal_stack_000000001' @ 0x00006035a000
+	112 - PageTable: 'pd_administrator_vaddr_0x200000' @ 0x00006035b000
+	113 - PageTable: 'pd_administrator_vaddr_0xffffe00000' @ 0x00006035c000
+	114 - PageTable: 'pd_audit_vaddr_0x200000' @ 0x00006035d000
+	115 - PageTable: 'pd_audit_vaddr_0xffffe00000' @ 0x00006035e000
+	116 - PageTable: 'pd_bootstrap_vaddr_0x200000' @ 0x00006035f000
+	117 - PageTable: 'pd_bootstrap_vaddr_0xffffe00000' @ 0x000060360000
+	118 - PageTable: 'pd_client_vaddr_0x200000' @ 0x000060361000
+	119 - PageTable: 'pd_client_vaddr_0xffffe00000' @ 0x000060362000
+	120 - PageTable: 'pd_monitor_vaddr_0x200000' @ 0x000060363000
+	121 - PageTable: 'pd_monitor_vaddr_0xffffe00000' @ 0x000060364000
+	122 - PageTable: 'pd_policy_vaddr_0x200000' @ 0x000060365000
+	123 - PageTable: 'pd_policy_vaddr_0xffffe00000' @ 0x000060366000
+	124 - PageTable: 'pd_serial_vaddr_0x200000' @ 0x000060367000
+	125 - PageTable: 'pd_serial_vaddr_0xffffe00000' @ 0x000060368000
+	126 - PageTable: 'pd_storage_vaddr_0x200000' @ 0x000060369000
+	127 - PageTable: 'pd_storage_vaddr_0xffffe00000' @ 0x00006036a000
+	128 - PageTable: 'pd_terminal_vaddr_0x200000' @ 0x00006036b000
+	129 - PageTable: 'pd_terminal_vaddr_0xffffe00000' @ 0x00006036c000
+	130 - PageTable: 'pt_administrator_vaddr_0x200000' @ 0x00006036d000
+	131 - PageTable: 'pt_administrator_vaddr_0xfffffff000' @ 0x00006036e000
+	132 - PageTable: 'pt_audit_vaddr_0x200000' @ 0x00006036f000
+	133 - PageTable: 'pt_audit_vaddr_0xfffffff000' @ 0x000060370000
+	134 - PageTable: 'pt_bootstrap_vaddr_0x200000' @ 0x000060371000
+	135 - PageTable: 'pt_bootstrap_vaddr_0x5000000' @ 0x000060372000
+	136 - PageTable: 'pt_bootstrap_vaddr_0xfffffff000' @ 0x000060373000
+	137 - PageTable: 'pt_client_vaddr_0x200000' @ 0x000060374000
+	138 - PageTable: 'pt_client_vaddr_0xfffffff000' @ 0x000060375000
+	139 - PageTable: 'pt_monitor_vaddr_0x200000' @ 0x000060376000
+	140 - PageTable: 'pt_monitor_vaddr_0xffffffd000' @ 0x000060377000
+	141 - PageTable: 'pt_policy_vaddr_0x200000' @ 0x000060378000
+	142 - PageTable: 'pt_policy_vaddr_0xfffffff000' @ 0x000060379000
+	143 - PageTable: 'pt_serial_vaddr_0x200000' @ 0x00006037a000
+	144 - PageTable: 'pt_serial_vaddr_0x4000000' @ 0x00006037b000
+	145 - PageTable: 'pt_serial_vaddr_0xfffffff000' @ 0x00006037c000
+	146 - PageTable: 'pt_storage_vaddr_0x200000' @ 0x00006037d000
+	147 - PageTable: 'pt_storage_vaddr_0xfffffff000' @ 0x00006037e000
+	148 - PageTable: 'pt_terminal_vaddr_0x200000' @ 0x00006037f000
+	149 - PageTable: 'pt_terminal_vaddr_0xfffffff000' @ 0x000060380000
+	150 - CNode: 'cnode_administrator_root' @ 0x000060381000
+	151 - CNode: 'cnode_audit_root' @ 0x000060381800
+	152 - CNode: 'cnode_bootstrap_root' @ 0x000060382000
+	153 - CNode: 'cnode_client_root' @ 0x000060382800
+	154 - CNode: 'cnode_policy_root' @ 0x000060383000
+	155 - CNode: 'cnode_serial_root' @ 0x000060383800
+	156 - CNode: 'cnode_storage_root' @ 0x000060384000
+	157 - CNode: 'cnode_terminal_root' @ 0x000060384800
+	158 - TCB: 'tcb_administrator' @ 0x000060385000
+	159 - TCB: 'tcb_audit' @ 0x000060385800
+	160 - TCB: 'tcb_bootstrap' @ 0x000060386000
+	161 - TCB: 'tcb_client' @ 0x000060386800
+	162 - TCB: 'tcb_monitor' @ 0x000060387000
+	163 - TCB: 'tcb_policy' @ 0x000060387800
+	164 - TCB: 'tcb_serial' @ 0x000060388000
+	165 - TCB: 'tcb_storage' @ 0x000060388800
+	166 - TCB: 'tcb_terminal' @ 0x000060389000
+	167 - SchedContext: 'sched_context_administrator' @ 0x000060389800
+	168 - SchedContext: 'sched_context_audit' @ 0x000060389900
+	169 - SchedContext: 'sched_context_bootstrap' @ 0x000060389a00
+	170 - SchedContext: 'sched_context_client' @ 0x000060389b00
+	171 - SchedContext: 'sched_context_monitor' @ 0x000060389c00
+	172 - SchedContext: 'sched_context_policy' @ 0x000060389d00
+	173 - SchedContext: 'sched_context_serial' @ 0x000060389e00
+	174 - SchedContext: 'sched_context_storage' @ 0x000060389f00
+	175 - SchedContext: 'sched_context_terminal' @ 0x00006038a000
+	176 - Notification: 'ntfn_administrator' @ 0x00006038a100
+	177 - Notification: 'ntfn_audit' @ 0x00006038a140
+	178 - Notification: 'ntfn_bootstrap' @ 0x00006038a180
+	179 - Notification: 'ntfn_client' @ 0x00006038a1c0
+	180 - Notification: 'ntfn_policy' @ 0x00006038a200
+	181 - Notification: 'ntfn_serial' @ 0x00006038a240
+	182 - Notification: 'ntfn_storage' @ 0x00006038a280
+	183 - Notification: 'ntfn_terminal' @ 0x00006038a2c0
+	184 - Reply: 'reply_administrator' @ 0x00006038a300
+	185 - Reply: 'reply_audit' @ 0x00006038a320
+	186 - Reply: 'reply_bootstrap' @ 0x00006038a340
+	187 - Reply: 'reply_client' @ 0x00006038a360
+	188 - Reply: 'reply_monitor' @ 0x00006038a380
+	189 - Reply: 'reply_policy' @ 0x00006038a3a0
+	190 - Reply: 'reply_serial' @ 0x00006038a3c0
+	191 - Reply: 'reply_storage' @ 0x00006038a3e0
+	192 - Reply: 'reply_terminal' @ 0x00006038a400
+	193 - Endpoint: 'ep_administrator' @ 0x00006038a420
+	194 - Endpoint: 'ep_audit' @ 0x00006038a430
+	195 - Endpoint: 'ep_bootstrap' @ 0x00006038a440
+	196 - Endpoint: 'ep_client' @ 0x00006038a450
+	197 - Endpoint: 'ep_fault_monitor' @ 0x00006038a460
+	198 - Endpoint: 'ep_policy' @ 0x00006038a470
+	199 - Endpoint: 'ep_serial' @ 0x00006038a480
+	200 - Endpoint: 'ep_storage' @ 0x00006038a490

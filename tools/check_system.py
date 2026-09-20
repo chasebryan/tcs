@@ -75,7 +75,7 @@ def isolation_base(root):
 
 
 def validate(path, profile="seed"):
-    require(profile in {"seed", "terminal", "isolation", "boot-test", "admin-test"}, "unknown system profile")
+    require(profile in {"seed", "terminal", "isolation", "boot-test", "admin-test", "interactive"}, "unknown system profile")
     if profile == "boot-test":
         validate_boot_test(ET.parse(path).getroot())
         return
@@ -83,8 +83,8 @@ def validate(path, profile="seed"):
     domains = TERMINAL_DOMAINS if terminal else DOMAINS
     expected_edges = TERMINAL_EDGES if terminal else EDGES
     root = ET.parse(path).getroot()
-    if profile == "admin-test":
-        admin_test_base(root)
+    if profile in {"admin-test", "interactive"}:
+        admin_test_base(root, profile == "interactive")
     if profile == "isolation":
         isolation_base(root)
     require(root.tag == "system" and not root.attrib, "unexpected system root")
@@ -177,7 +177,7 @@ def validate_boot_test(root):
     print("PASS exact boot-test firmware/UART owners and sole output channel; no policy authority")
 
 
-def admin_test_base(root):
+def admin_test_base(root, interactive=False):
     """Validate/remove exact admin-test additions, then apply the terminal checks."""
     def shape(e):
         return (e.tag, e.attrib, (e.text or "").strip(), (e.tail or "").strip(), [shape(c) for c in e])
@@ -189,12 +189,16 @@ def admin_test_base(root):
         root.remove(matches[0])
 
     take("memory_region", '<memory_region name="fwcfg" size="0x1000" phys_addr="0x09020000" />')
-    take("protection_domain", '<protection_domain name="administrator" priority="25" budget="10000" period="10000"><program_image path="admin.elf" /></protection_domain>')
-    take("protection_domain", '<protection_domain name="test_boot" priority="70" budget="10000" period="10000"><program_image path="admin_boot.elf" /><map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" /></protection_domain>')
-    for caller, source, callee, target in (("terminal", 2, "administrator", 0),
-        ("administrator", 2, "policy", 0), ("administrator", 1, "test_boot", 0), ("terminal", 3, "test_boot", 1)):
+    admin_image = "launch_admin.elf" if interactive else "admin.elf"
+    boot_image, boot_name = ("launch_boot.elf", "bootstrap") if interactive else ("admin_boot.elf", "test_boot")
+    take("protection_domain", f'<protection_domain name="administrator" priority="25" budget="10000" period="10000"><program_image path="{admin_image}" /></protection_domain>')
+    take("protection_domain", f'<protection_domain name="{boot_name}" priority="70" budget="10000" period="10000"><program_image path="{boot_image}" /><map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" /></protection_domain>')
+    edges = [("terminal", 2, "administrator", 0), ("administrator", 2, "policy", 0), ("administrator", 1, boot_name, 0)]
+    if not interactive:
+        edges.append(("terminal", 3, boot_name, 1))
+    for caller, source, callee, target in edges:
         take("channel", f'<channel><end pd="{caller}" id="{source}" pp="true" notify="false" /><end pd="{callee}" id="{target}" notify="false" /></channel>')
-    for name, image in (("terminal", "admin_client.elf"), ("policy", "admin_policy.elf")):
+    for name, image in (("terminal", "terminal.elf" if interactive else "admin_client.elf"), ("policy", "admin_policy.elf")):
         domains = root.findall(f"protection_domain[@name='{name}']")
         require(len(domains) == 1, "missing/duplicate admin-test domain")
         images = domains[0].findall("program_image")
@@ -206,7 +210,7 @@ def admin_test_base(root):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path")
-    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test", "admin-test"), default="seed")
+    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test", "admin-test", "interactive"), default="seed")
     args = parser.parse_args()
     try:
         validate(args.path, args.profile)

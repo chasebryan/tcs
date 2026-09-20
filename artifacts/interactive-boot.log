@@ -1,0 +1,308 @@
+CASE one-shot-signed-lifecycle
+TCS SIGNED TERMINAL READY (release-kernel, PUBLIC-FIXTURE-ONLY)
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> grant 1
+ERROR unknown or malformed command
+tcs> revoke 1
+ERROR unknown or malformed command
+tcs> quarantine 1
+ERROR unknown or malformed command
+tcs> restore 1
+ERROR unknown or malformed command
+tcs> status 2
+ERROR unknown or malformed command
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ERROR discarded signed packet
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ERROR discarded signed packet
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> ab
+ERROR discarded signed packet
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> ab
+ERROR discarded signed packet
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0100000000000000010000000000000001000000000000002a000000000000000100000000000000000000000000000096fc3f1a822e26f7b0666b681d44a4943b2192d0abd375e0e52315b341598fcb5647c7240b56994827a012c9da0d4defb23a4bb4108a3f95e88a156558c04d06
+ADMIN REJECTED status=4
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e01000000000000000100000000000000010000000000000000000000000000000100000000000000000000000000000096fc3f1a822e26f7b0666b681d44a4943b2192d0abd375e0e52315b341598fcb5647c7240b56994827a012c9da0d4defb23a4bb4108a3f95e88a156558c04d07
+ADMIN REJECTED status=2
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0100000000000000010000000000000001000000000000002a000000000000000100000000000000000000000000000096fc3f1a822e26f7b0666b681d44a4943b2192d0abd375e0e52315b341598fcb5647c7240b56994827a012c9da0d4defb23a4bb4108a3f95e88a156558c04d07
+ADMIN seq=1 decision=0 audit=1 applied=1 state=1 generation=1
+tcs> status
+SELF state=active generation=1 object=42 rights=1
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0100000000000000010000000000000001000000000000002a000000000000000100000000000000000000000000000096fc3f1a822e26f7b0666b681d44a4943b2192d0abd375e0e52315b341598fcb5647c7240b56994827a012c9da0d4defb23a4bb4108a3f95e88a156558c04d07
+ADMIN REJECTED status=5
+tcs> read 1
+READ OK value=288992676184
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0200000000000000010000000000000001000000000000002a00000000000000010000000000000000000000000000000aa5ec5c3bee1c96381f02220843214872a5096976d1c3983940e80beb0ff6ad1b3cf34f2e394ad9b6e6bc5ff17ccb8c3d11955e0cada38df479fc9a9f39da05
+ADMIN seq=2 decision=3 audit=1 applied=0 state=1 generation=1
+tcs> status
+SELF state=active generation=1 object=42 rights=1
+tcs> read 1
+READ OK value=288992676184
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0300000000000000030000000000000001000000000000000000000000000000000000000000000001000000000000005961a15151202ed8d87a4e3299fc957861b1a00d08e8b933af8047ff5a9e6b668001dcc6b9c96a1bff062eea33da0e2570dd09900a28caa1105edd42633ba506
+ADMIN seq=3 decision=0 audit=1 applied=1 state=0 generation=2
+tcs> status
+SELF state=restricted generation=2 object=0 rights=0
+tcs> read 2
+READ DENIED status=1
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0400000000000000010000000000000001000000000000002a0000000000000001000000000000000200000000000000e0ff453d59e02852db7a06567b52412d97aa3f56bd2dd18883f059799a6626db249487fbab38504374055a45eae708326571d563a9435ecbb73eef8faedba20e
+ADMIN seq=4 decision=0 audit=1 applied=1 state=1 generation=3
+tcs> status
+SELF state=active generation=3 object=42 rights=1
+tcs> read 3
+READ OK value=288992676184
+tcs> read 1
+READ DENIED status=3
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e05000000000000000400000000000000010000000000000000000000000000000000000000000000030000000000000069db333635c18852eac04c2e2ee6a663065c89eb8677c30ed2190348e66a95da7816faa015b38e8dd006298cce5ad75b2c1c7b01c00c08e8dc084196bebc2600
+ADMIN seq=5 decision=0 audit=1 applied=1 state=2 generation=4
+tcs> status
+SELF state=quarantined generation=4 object=0 rights=0
+tcs> read 4
+READ DENIED status=4
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0600000000000000010000000000000001000000000000002a0000000000000001000000000000000400000000000000f67fe6b57baf0961b49658aafe38555ec6b30d1a7faa5811ff0e6f030bfc42e35a3f3f558b099942cb2ba3a63da010393bd1610bd95b1ee4f126259d224f1a0f
+ADMIN seq=6 decision=4 audit=1 applied=0 state=2 generation=4
+tcs> status
+SELF state=quarantined generation=4 object=0 rights=0
+tcs> read 4
+READ DENIED status=4
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0700000000000000050000000000000001000000000000000000000000000000000000000000000004000000000000009e038c8c73e5d69ec544cffcee19ede01b4f25388fd1be669660ab323f36f410469b9e75566415eb439ad34dfd18d8a2e17625294f507c456718df4490647b0d
+ADMIN seq=7 decision=0 audit=1 applied=1 state=0 generation=5
+tcs> status
+SELF state=restricted generation=5 object=0 rights=0
+tcs> read 5
+READ DENIED status=1
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0800000000000000010000000000000001000000000000002a00000000000000010000000000000005000000000000007f0b353219bfe2a2bac5916515daf2aed142afd352f6889d3e042e2ff01dccd96942fb02f292f4d7395411019471569b477cb62848308792e240404ef122300a
+ADMIN seq=8 decision=0 audit=1 applied=1 state=1 generation=6
+tcs> status
+SELF state=active generation=6 object=42 rights=1
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ OK value=288992676184
+tcs> read 6
+READ DENIED status=5
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e09000000000000000300000000000000010000000000000000000000000000000000000000000000060000000000000098b3a5f4baa3445688f45ad7b10d65e7c9990cceb2e5a32980962fd3dcba53a7defe94e9da245495db0698fd5b715b88dada0bb96bfc94528cfdc294ada4970d
+ADMIN seq=9 decision=0 audit=0 applied=1 state=0 generation=7
+tcs> status
+SELF state=restricted generation=7 object=0 rights=0
+tcs> read 7
+READ DENIED status=5
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0a00000000000000010000000000000001000000000000002a0000000000000001000000000000000700000000000000a2575efcc6cf3cdcfeb5e9bfd595db39604aa5b02cd355360d6dda200bde451ccf9d293f4b04214c317d7d0d8a2501fa53e2926dff27bbff6dcb5b3148b5fe0c
+ADMIN seq=10 decision=0 audit=0 applied=0 state=0 generation=7
+tcs> status
+SELF state=restricted generation=7 object=0 rights=0
+tcs> read 7
+READ DENIED status=5
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0b000000000000000400000000000000010000000000000000000000000000000000000000000000070000000000000069d23b157ee92121a1d1eed780c50fe58598b39d4616292c20a316ae37b7bd9618760499b4b8dcf04904a1d53c7ce14d200fda4de41e47b51f0f84f45cacc106
+ADMIN seq=11 decision=0 audit=0 applied=1 state=2 generation=8
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> read 8
+READ DENIED status=5
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0c0000000000000005000000000000000100000000000000000000000000000000000000000000000800000000000000f1d0f838f906618707ce632e235149f91afeccc91414a27fb8f6520a6bb37a7616b8557190db3998c56ff2dd7eae4f59f793ce2ef7ac6ab9ff3b5ee34baf6d02
+ADMIN seq=12 decision=0 audit=0 applied=0 state=2 generation=8
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> read 8
+READ DENIED status=5
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 69736 (<unknown process>)
+CASE cross-launch
+TCS SIGNED TERMINAL READY (release-kernel, PUBLIC-FIXTURE-ONLY)
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d010000000000545454545454545454545454545454545454545454545454545454545454545481cd1c91958c55373e4312ca4fe07ab8135c13685fc364d887c6fac513ca198e0100000000000000010000000000000001000000000000002a000000000000000100000000000000000000000000000096fc3f1a822e26f7b0666b681d44a4943b2192d0abd375e0e52315b341598fcb5647c7240b56994827a012c9da0d4defb23a4bb4108a3f95e88a156558c04d07
+ADMIN REJECTED status=3
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454e51b701e458a5d86523c52474043c0b526e53e5fdadeebe47e5386e3c331b7a90100000000000000010000000000000001000000000000002a0000000000000001000000000000000000000000000000218dfcfcca3e7d1869cb4ddb35f2c8ac922f926b23356eeeca89619f61b5d200dc4711e88489b772c7e85578d4e0b88780ae478770ac51ec54b97309861a1f0f
+ADMIN seq=1 decision=0 audit=1 applied=1 state=1 generation=1
+tcs> status
+SELF state=active generation=1 object=42 rights=1
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 69736 (<unknown process>)
+CASE operator-refuses-fixture
+TCS SIGNED TERMINAL READY (release-kernel, experimental-operator)
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d01000000000054545454545454545454545454545454545454545454545454545454545454543581b64751ec2a4f5aab8518a958e23055fd866f0598747a16416b5e7c9abb1d0100000000000000010000000000000001000000000000002a0000000000000001000000000000000000000000000000a07e3aa8b6bba6d4a030d86fd255250f9e090ca1a33fdc4ed7aa1ef25ce2f91dec36310bc8cb308d3b49ca453d9f9b39df385da687a05b4fcfd16e0ae83a080c
+ADMIN REJECTED status=1
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 69736 (<unknown process>)
+CASE signed-UART-breaks-test-only
+TCS SIGNED TERMINAL READY (release-kernel, PUBLIC-FIXTURE-ONLY)
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454
+INPUT LOST; discard until Enter or Ctrl-C
+
+ERROR discarded signed packet
+tcs> status
+SELF state=restricted generation=0 object=0 rights=0
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454dd32fc7c17fef72b45e7cd9df7a466a313254984d50411f155ef4c7b17d9abed0100000000000000010000000000000001000000000000002a00000000000000010000000000000000000000000000001ae28752bdb39341389f2d6edf0998f3a77295273873f9bc51916e7e33f9c3e4ceeb43c0d8f12fbca0964e98781c785af68d4a8151cfdaff6a8257287fc4cc0c
+ADMIN seq=1 decision=0 audit=1 applied=1 state=1 generation=1
+tcs> status
+SELF state=active generation=1 object=42 rights=1
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454dd32fc7c17fef72b45e7cd9df7a466a313254984d50411f155ef4c7b17d9abed0200000000000000030000000000000001000000000000000000000000000000000000000000000001000000000000003c88fb967938ee13c47d9a18c7049861998ad07302aa2609cbbab408b88cb809fb971a6b8b4e24e53fd7afb97af6cd2a8f43d83fd88c7af8c7def8239a37e500
+INPUT LOST; discard until Enter or Ctrl-C
+
+ERROR discarded signed packet
+tcs> status
+SELF state=active generation=1 object=42 rights=1
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454dd32fc7c17fef72b45e7cd9df7a466a313254984d50411f155ef4c7b17d9abed0200000000000000030000000000000001000000000000000000000000000000000000000000000001000000000000003c88fb967938ee13c47d9a18c7049861998ad07302aa2609cbbab408b88cb809fb971a6b8b4e24e53fd7afb97af6cd2a8f43d83fd88c7af8c7def8239a37e500
+ADMIN seq=2 decision=0 audit=1 applied=1 state=0 generation=2
+tcs> status
+SELF state=restricted generation=2 object=0 rights=0
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454dd32fc7c17fef72b45e7cd9df7a466a313254984d50411f155ef4c7b17d9abed03000000000000000400000000000000
+INPUT LOST; discard until Enter or Ctrl-C
+^C
+CANCELLED
+tcs> status
+SELF state=restricted generation=2 object=0 rights=0
+tcs> submit
+Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.
+packet> 5443532d41444d494e2d0100000000005454545454545454545454545454545454545454545454545454545454545454dd32fc7c17fef72b45e7cd9df7a466a313254984d50411f155ef4c7b17d9abed030000000000000004000000000000000100000000000000000000000000000000000000000000000200000000000000ac892bda9344306bc23bcd9be63c7292c698d366fb25d95be39cfb57d9cb504b3028922430cf654667e973484049c9a10fc527acea630a741822a8e1af326007
+ADMIN seq=3 decision=0 audit=1 applied=1 state=2 generation=3
+tcs> status
+SELF state=quarantined generation=3 object=0 rights=0
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 69736 (<unknown process>)

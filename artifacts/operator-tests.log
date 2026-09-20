@@ -1,16 +1,8 @@
+"build/launch_test"
 PASS launch/public formats: lengths, 256 header corruptions, modes, zero error outputs, three RFC key exclusions
-test_approval_binds_command_and_context (operator_test.OperatorTests.test_approval_binds_command_and_context) ... ok
-test_canonical_commands_and_integer_boundaries (operator_test.OperatorTests.test_canonical_commands_and_integer_boundaries) ... ok
-test_entropy_failure_and_exclusive_sequence_output (operator_test.OperatorTests.test_entropy_failure_and_exclusive_sequence_output) ... ok
-test_extended_acl_is_rejected (operator_test.OperatorTests.test_extended_acl_is_rejected) ... ok
-test_file_modes_links_fifo_and_path_components (operator_test.OperatorTests.test_file_modes_links_fifo_and_path_components) ... ok
-test_identity_modes_permissions_and_no_overwrite (operator_test.OperatorTests.test_identity_modes_permissions_and_no_overwrite) ... ok
-test_private_seed_and_public_half_must_match (operator_test.OperatorTests.test_private_seed_and_public_half_must_match) ... ok
-test_review_digest_and_real_signature_interoperability (operator_test.OperatorTests.test_review_digest_and_real_signature_interoperability) ... ok
-test_short_write_and_uncertain_output_fail_closed (operator_test.OperatorTests.test_short_write_and_uncertain_output_fail_closed) ... ok
-test_untrusted_context_headers_lengths_and_bindings (operator_test.OperatorTests.test_untrusted_context_headers_lengths_and_bindings) ... ok
-
+TCS_TEST_BUILD_DIR="/Users/chasebryan/Documents/Codex/2026-09-20/referenced-chatgpt-conversation-this-is-an/outputs/TCS/build" python3 -m unittest discover -s tests -p 'operator_test.py'
+............
 ----------------------------------------------------------------------
-Ran 10 tests in 8.336s
+Ran 12 tests in 9.735s
 
 OK

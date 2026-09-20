@@ -8,7 +8,7 @@ Repository: [chasebryan/tcs](https://github.com/chasebryan/tcs). TCS replaces th
 
 The seed console runs an automated scenario. A separate development profile now provides an interactive read-only terminal through an isolated PL011 serial server. Storage serves one read-only fixture. Persistent storage, signed updates, dynamic process creation, and a user login system come in later milestones. The typed capability design will extend the seed's versioned operation contracts; compile-time typed capability handles are not implemented yet.
 
-Development toward milestone 0.2 includes a bounded [UART terminal](docs/TERMINAL.md), with no policy-admin channel and no command that grants authority. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and the next acceptance gate. Interactive administration and authentication are not implemented.
+Development toward milestone 0.2 includes a bounded [read-only UART terminal](docs/TERMINAL.md) and a separately selected [signed interactive profile](docs/OPERATOR.md). The latter submits exact signed requests through an isolated administrator; terminal never gets a direct policy-admin channel. Positive authentication tests use public fixtures only. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and remaining provisioning/recovery gates.
 
 ## Run
 
@@ -42,7 +42,7 @@ The next administration layer now has a [signed-request core](docs/ADMIN.md), wi
 
 A further [administration IPC test profile](docs/ADMIN-IPC.md) connects a separate administrator to policy and audit. `make admin-test-smoke` exercises 12 signed test commands and definitive execution receipts, including audit-failed revocation versus blocked grants; `make admin-test-smoke-saved` runs the included image. This uses public fixtures only and ends with a read-only terminal. It is not operator login or deployment provisioning.
 
-`make operator-tools` builds an [experimental host-side operator tool](docs/OPERATOR.md) for explicit key creation, public launch-context preparation, exact command review, and signing. It never creates credentials during the build or tests; `make operator-test` uses public fixtures only. No current guest accepts its new context format, and it neither launches a guest nor sends commands. Trusted launcher integration and bounded signed terminal input are the next gate.
+`make operator-tools` builds an [experimental host-side operator tool](docs/OPERATOR.md) for explicit key creation, public launch-context preparation, exact command review, signing, and one-shot guest launch. It never creates real credentials during the build or tests; `make operator-test` uses public fixtures only. `make interactive-smoke` tests the complete signed UART workflow and two separate eight-domain release images; `make interactive-smoke-saved` uses the included images without an SDK. The operator image refuses public test credentials. No successful real-credential login, durable replay state, authenticated host receipt, or production provisioning is claimed.
 
 ## First server graph
 
@@ -66,6 +66,7 @@ The dynamic behavior currently changes application authorization inside a fixed 
 | --- | --- |
 | `system/tcs.system` | Five protection domains and their permitted communication paths |
 | `system/terminal.system` | Six-domain terminal profile; UART mapping/IRQ only in the serial server |
+| `system/interactive.system` | Eight-domain signed terminal; private administrator/policy route, separate public-context bootstrap |
 | `servers/` | Freestanding native Microkit programs |
 | `lib/policy.c` | Allocation-free policy state machine shared by runtime and host tests |
 | `lib/terminal.c` | Bounded line editing and read-only command parsing used in the runtime |

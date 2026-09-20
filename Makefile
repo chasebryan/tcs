@@ -14,6 +14,8 @@ endif
 SDK_BOARD = $(MICROKIT_SDK)/board/$(BOARD)/$(CONFIG)
 RELEASE_SDK_BOARD = $(MICROKIT_SDK)/board/$(BOARD)/release
 RELEASE_DIR := $(BUILD_DIR)/release
+OPERATOR_DIR := $(BUILD_DIR)/operator
+FIXTURE_DIR := $(BUILD_DIR)/interactive-fixture
 SERVERS := console client storage policy audit
 IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,$(SERVERS)))
 TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
@@ -41,6 +43,8 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: admin-ipc-test
 .PHONY: admin-test-image admin-test-smoke admin-test-smoke-saved
 .PHONY: operator-tools operator-test
+.PHONY: interactive-image interactive-fixture-image
+.PHONY: interactive-smoke interactive-smoke-saved
 .SECONDARY:
 all: test
 
@@ -54,6 +58,9 @@ $(RELEASE_DIR):
 	mkdir -p "$@"
 
 $(ISOLATION_DIR):
+	mkdir -p "$@"
+
+$(OPERATOR_DIR) $(FIXTURE_DIR):
 	mkdir -p "$@"
 
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
@@ -92,6 +99,9 @@ $(BUILD_DIR)/admin_ipc_test: tests/admin_ipc_test.c servers/admin.c servers/admi
 admin-ipc-test: $(BUILD_DIR)/admin_ipc_test
 	"$(BUILD_DIR)/admin_ipc_test"
 
+$(BUILD_DIR)/launch_admin_ipc_test: tests/admin_ipc_test.c servers/launch_admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c $(HEADERS) tests/support/microkit.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_LAUNCH_IPC_TEST -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c tests/admin_ipc_test.c -o "$@"
+
 $(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
 
@@ -110,11 +120,22 @@ $(BUILD_DIR)/operator_verify: tests/operator_verify.c lib/launch.c lib/admin.c $
 $(BUILD_DIR)/launch_test: tests/launch_test.c lib/launch.c include/tcs/launch.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/launch.c tests/launch_test.c -o "$@"
 
+$(BUILD_DIR)/launch_probe: tests/launch_probe.c | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) tests/launch_probe.c -o "$@"
+
+$(BUILD_DIR)/signed_input_test: tests/signed_input_test.c lib/signed_input.c $(HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/signed_input.c tests/signed_input_test.c -o "$@"
+
+$(BUILD_DIR)/signed_terminal_test: tests/signed_terminal_test.c servers/terminal.c tests/support/microkit.h lib/terminal.c lib/signed_input.c lib/admin_receipt.c $(HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/terminal.c lib/signed_input.c lib/admin_receipt.c tests/signed_terminal_test.c -o "$@"
+
 operator-tools: $(BUILD_DIR)/tcs-operator
 
-operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test
+operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test $(BUILD_DIR)/launch_probe
 	"$(BUILD_DIR)/launch_test"
 	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'operator_test.py'
+
+test: $(BUILD_DIR)/launch_probe $(BUILD_DIR)/signed_input_test $(BUILD_DIR)/signed_terminal_test $(BUILD_DIR)/launch_admin_ipc_test
 
 test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
@@ -128,7 +149,10 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/admin_test"
 	"$(BUILD_DIR)/boot_test"
 	"$(BUILD_DIR)/admin_ipc_test"
+	"$(BUILD_DIR)/launch_admin_ipc_test"
 	"$(BUILD_DIR)/launch_test"
+	"$(BUILD_DIR)/signed_input_test"
+	"$(BUILD_DIR)/signed_terminal_test"
 	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
@@ -137,6 +161,7 @@ check-system:
 	$(PYTHON) tools/check_system.py system/isolation.system --profile isolation
 	$(PYTHON) tools/check_system.py system/boot-test.system --profile boot-test
 	$(PYTHON) tools/check_system.py system/admin-test.system --profile admin-test
+	$(PYTHON) tools/check_system.py system/interactive.system --profile interactive
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -205,6 +230,33 @@ admin-test-smoke: admin-test-image $(BUILD_DIR)/admin_fixture
 
 admin-test-smoke-saved: verify-artifacts $(BUILD_DIR)/admin_fixture
 	$(PYTHON) tools/admin_boot_test.py --qemu "$(QEMU)" --image artifacts/admin-test.img --fixture "$(BUILD_DIR)/admin_fixture" --log "$(BUILD_DIR)/saved-admin-ipc-boot.log"
+
+$(OPERATOR_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(OPERATOR_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_SIGNED_INPUT=1 -DTCS_LAUNCH_MODE=0 -c "$<" -o "$@"
+
+$(FIXTURE_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(FIXTURE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_SIGNED_INPUT=1 -DTCS_LAUNCH_MODE=1 -c "$<" -o "$@"
+
+$(OPERATOR_DIR)/terminal.elf $(FIXTURE_DIR)/terminal.elf: %/terminal.elf: %/terminal.o $(RELEASE_DIR)/terminal_core.o $(RELEASE_DIR)/signed_input_core.o $(RELEASE_DIR)/admin_receipt_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(OPERATOR_DIR)/launch_admin.elf $(FIXTURE_DIR)/launch_admin.elf: %/launch_admin.elf: %/launch_admin.o $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_receipt_core.o $(RELEASE_DIR)/launch_core.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(OPERATOR_DIR)/launch_boot.elf $(FIXTURE_DIR)/launch_boot.elf: %/launch_boot.elf: %/launch_boot.o $(RELEASE_DIR)/boot_core.o $(RELEASE_DIR)/launch_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(OPERATOR_DIR)/interactive.img $(FIXTURE_DIR)/interactive.img: %/interactive.img: %/terminal.elf %/launch_admin.elf %/launch_boot.elf $(RELEASE_DIR)/admin_policy.elf $(RELEASE_IMAGES) system/interactive.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/interactive.system --search-path "$(@D)" "$(RELEASE_DIR)" --board $(BOARD) --config release -o "$@" -r "$(@D)/report.txt"
+
+interactive-image: $(OPERATOR_DIR)/interactive.img
+interactive-fixture-image: $(FIXTURE_DIR)/interactive.img
+
+interactive-smoke: interactive-image interactive-fixture-image $(BUILD_DIR)/operator_fixture
+	$(PYTHON) tools/interactive_boot_test.py --qemu "$(QEMU)" --fixture "$(BUILD_DIR)/operator_fixture" --image "$(FIXTURE_DIR)/interactive.img" --operator-image "$(OPERATOR_DIR)/interactive.img" --log "$(BUILD_DIR)/interactive-boot.log"
+
+interactive-smoke-saved: verify-artifacts $(BUILD_DIR)/operator_fixture
+	$(PYTHON) tools/interactive_boot_test.py --qemu "$(QEMU)" --fixture "$(BUILD_DIR)/operator_fixture" --image artifacts/interactive-fixture.img --operator-image artifacts/interactive.img --log "$(BUILD_DIR)/saved-interactive-boot.log"
 
 $(BUILD_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(BUILD_DIR) check-tools
 	"$(ZIG)" cc $(TARGET_FLAGS) -c "$<" -o "$@"

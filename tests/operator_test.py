@@ -1,6 +1,7 @@
 """Exercise the actual host CLI with public RFC credentials; never real keygen."""
 import concurrent.futures
 import hashlib
+import fcntl
 import os
 from pathlib import Path
 import stat
@@ -226,6 +227,56 @@ class OperatorTests(unittest.TestCase):
             before = path.read_bytes()
             self.invoke("sign", self.identity, self.session, *args, approval, expected=1)
             self.assertEqual(path.read_bytes(), before)
+
+    def test_one_shot_launch_and_descriptor_boundary(self):
+        image = self.root / "image.img"; image.write_bytes(b"IMAGE")
+        probe = (BUILD / "launch_probe").resolve()
+        command = [str(BUILD / "operator_fixture"), "launch", str(self.identity), str(self.session), str(image), str(probe), ACK]
+        with image.open("rb") as source:
+            extra = fcntl.fcntl(source.fileno(), fcntl.F_DUPFD, 500)
+            try:
+                result = subprocess.run(command, capture_output=True, timeout=10, pass_fds=(extra,))
+            finally:
+                os.close(extra)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(b"no extra inherited descriptors", result.stdout)
+        used = self.session / "launch.used"
+        self.assertEqual(used.read_bytes(), (self.session / "launch.context").read_bytes())
+        self.assertEqual(stat.S_IMODE(used.stat().st_mode), 0o600)
+        snapshot = self.session / "launch.img"
+        self.assertEqual(snapshot.read_bytes(), b"IMAGE")
+        self.assertEqual(stat.S_IMODE(snapshot.stat().st_mode), 0o600)
+        image.write_bytes(b"CHANGED")
+        self.assertEqual(snapshot.read_bytes(), b"IMAGE")
+        image.write_bytes(b"IMAGE")
+        self.invoke("launch", self.identity, self.session, image, probe, ACK, expected=1)
+        # Even a failed exec consumes a fresh session; no resume/reset switch.
+        other = self.root / "failed-exec"; self.invoke("context", self.identity, other, ACK)
+        self.invoke("launch", self.identity, other, image, self.root / "missing-qemu", ACK, expected=1)
+        self.assertTrue((other / "launch.used").exists())
+        self.invoke("launch", self.identity, other, image, probe, ACK, expected=1)
+        collision = self.root / "image-collision"
+        self.invoke("context", self.identity, collision, ACK)
+        (collision / "launch.img").write_bytes(b"PRESERVE")
+        self.invoke("launch", self.identity, collision, image, probe, ACK, expected=1)
+        self.assertEqual((collision / "launch.img").read_bytes(), b"PRESERVE")
+        self.assertTrue((collision / "launch.used").exists())
+
+    def test_concurrent_launch_and_failed_reservation(self):
+        image = self.root / "image.img"; image.write_bytes(b"IMAGE")
+        probe = (BUILD / "launch_probe").resolve()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(lambda _: self.invoke("launch", self.identity, self.session, image,
+                                                        probe, ACK, expected=None), range(4)))
+        self.assertEqual(sum(r.returncode == 0 for r in results), 1)
+        for flag, length in (("TCS_TEST_WRITE_FAIL", 7), ("TCS_TEST_FSYNC_FAIL", 112)):
+            path = self.root / flag; self.invoke("context", self.identity, path, ACK)
+            result = self.invoke("launch", self.identity, path, image, probe, ACK, expected=1, env={flag: "1"})
+            self.assertNotIn(b"PASS exact QEMU", result.stdout)
+            self.assertEqual((path / "launch.used").stat().st_size, length)
+            self.invoke("launch", self.identity, path, image, probe, ACK, expected=1)
+        for bad in ("relative", str(image) + ",bad=on", str(image) + "\n"):
+            self.invoke("launch", self.identity, self.session, bad, probe, ACK, expected=1)
 
 
 if __name__ == "__main__":

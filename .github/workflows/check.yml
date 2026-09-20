@@ -5,7 +5,7 @@ permissions:
 jobs:
   seed:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Native policy, terminal, serial, and authority tests
@@ -44,3 +44,7 @@ jobs:
         run: make admin-test-smoke
       - name: Saved signed administration test image
         run: make admin-test-smoke-saved
+      - name: One-shot launcher and signed interactive UART
+        run: make interactive-smoke
+      - name: Saved signed interactive profiles
+        run: make interactive-smoke-saved

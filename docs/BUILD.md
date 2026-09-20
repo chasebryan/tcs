@@ -39,6 +39,10 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make bootstrap` | Download and extract pinned SDK/compiler |
 | `make operator-tools` | Build experimental host review/signing tool; no credential creation or guest provisioning |
 | `make operator-test` | Sanitized public-context and host workflow tests using only public RFC fixtures |
+| `make interactive-image` | Build experimental operator-mode signed UART image into `build/operator/interactive.img`; no credential creation |
+| `make interactive-fixture-image` | Build separately labeled public-fixture signed UART image; never deploy |
+| `make interactive-smoke` | One-shot host launcher, signed UART lifecycle/replay, and real serial-break tests using only public fixtures |
+| `make interactive-smoke-saved` | Test both saved signed UART images; native fixture compiler needed, no SDK |
 | `make boot-test-smoke` | Build/run test-only trusted-launch transport and guest Ed25519 cases; public fixtures only |
 | `make boot-test-smoke-saved` | Run included boot-context test image; native C compiler required for fixture helper, no SDK required |
 | `make admin-ipc-test` | Sanitized real administrator/policy adapters with mocked transport and corrupted receipts |
@@ -98,8 +102,10 @@ That path is an example, not a TCS dependency; it must exist on your host. Match
 
 ## Automation and saved evidence
 
-The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots newly built and saved seed/debug-terminal/release-terminal/isolation-test images. Consult the run for the exact commit, not the existence of the workflow alone.
+The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots all eight newly built and saved image profiles. Consult the run for the exact commit, not the existence of the workflow alone.
 
 The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.
 
 Signed-administration and [host operator workflow](OPERATOR.md) tests run within `make test` using included, unmodified Monocypher 4.0.3 source; no additional download/package manager is needed. Keys in those tests are public RFC fixtures, stored only in private temporary test directories. No actual operator key file or ambient/environment credential is read. Local Linux/macOS filesystem mode/ACL behavior is required for the operator tests. See [the protocol and deployment gates](ADMIN.md).
+
+Interactive signed profiles use separate `operator/` and `interactive-fixture/` objects for terminal, administrator, and bootstrap, sharing only mode-independent release libraries/servers. Their required compile-time mode cannot be selected by incoming data. The one-shot launcher disables QEMU monitor controls; use host process termination to stop it. Ctrl-C cancels guest input and Ctrl-A/X is not an exit shortcut in this profile. See [the complete launch lifecycle](OPERATOR.md#one-shot-launch-and-terminal-use).

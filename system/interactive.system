@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system>
+    <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+    <memory_region name="fwcfg" size="0x1000" phys_addr="0x09020000" />
+    <protection_domain name="terminal" priority="10" budget="10000" period="10000">
+        <program_image path="terminal.elf" />
+    </protection_domain>
+    <protection_domain name="client" priority="20" budget="10000" period="10000">
+        <program_image path="client.elf" />
+    </protection_domain>
+    <protection_domain name="administrator" priority="25" budget="10000" period="10000">
+        <program_image path="launch_admin.elf" />
+    </protection_domain>
+    <protection_domain name="storage" priority="30" budget="10000" period="10000">
+        <program_image path="storage.elf" />
+    </protection_domain>
+    <protection_domain name="policy" priority="40" budget="10000" period="10000">
+        <program_image path="admin_policy.elf" />
+    </protection_domain>
+    <protection_domain name="audit" priority="50" budget="10000" period="10000">
+        <program_image path="audit.elf" />
+    </protection_domain>
+    <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+    </protection_domain>
+    <protection_domain name="bootstrap" priority="70" budget="10000" period="10000">
+        <program_image path="launch_boot.elf" />
+        <map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" />
+    </protection_domain>
+    <channel><end pd="terminal" id="0" pp="true" notify="false" /><end pd="serial" id="1" notify="true" /></channel>
+    <channel><end pd="terminal" id="1" pp="true" notify="false" /><end pd="client" id="0" notify="false" /></channel>
+    <channel><end pd="client" id="1" pp="true" notify="false" /><end pd="storage" id="0" notify="false" /></channel>
+    <channel><end pd="storage" id="1" pp="true" notify="false" /><end pd="policy" id="1" notify="false" /></channel>
+    <channel><end pd="policy" id="2" pp="true" notify="false" /><end pd="audit" id="0" notify="false" /></channel>
+    <channel><end pd="terminal" id="2" pp="true" notify="false" /><end pd="administrator" id="0" notify="false" /></channel>
+    <channel><end pd="administrator" id="2" pp="true" notify="false" /><end pd="policy" id="0" notify="false" /></channel>
+    <channel><end pd="administrator" id="1" pp="true" notify="false" /><end pd="bootstrap" id="0" notify="false" /></channel>
+</system>

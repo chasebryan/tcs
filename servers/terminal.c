@@ -1,6 +1,13 @@
 #include "tcs/ipc.h"
 #include "tcs/serial.h"
 #include "tcs/terminal.h"
+#ifdef TCS_SIGNED_INPUT
+#include "tcs/admin_ipc.h"
+#include "tcs/launch_profile.h"
+#include "tcs/signed_input.h"
+static struct tcs_signed_input signed_input;
+static bool packet_mode;
+#endif
 
 #define SERIAL_CHANNEL 0u
 #define CLIENT_CHANNEL 1u
@@ -54,14 +61,32 @@ static bool flush(void)
 
 static void execute(void)
 {
+#ifdef TCS_SIGNED_INPUT
+    static const char submit[] = "submit";
+    bool match = line.length == sizeof submit - 1;
+    for (size_t i = 0; match && i < sizeof submit - 1; ++i) match = line.bytes[i] == submit[i];
+    if (match) {
+        tcs_signed_begin(&signed_input, line.previous_cr); packet_mode = true;
+        append("Enter exactly 384 lowercase hex digits; Enter submits, Ctrl-C cancels.\r\npacket> ");
+        return;
+    }
+#endif
     struct tcs_command cmd = tcs_command_parse(line.bytes, line.length);
     switch (cmd.kind) {
     case TCS_CMD_EMPTY: break;
     case TCS_CMD_HELP:
+#ifdef TCS_SIGNED_INPUT
+        append("help | version | status | read <generation> | submit\r\nSigned packets only; no plaintext administration.\r\n");
+#else
         append("help | version | status | read <generation>\r\nNo administration commands.\r\n");
+#endif
         break;
     case TCS_CMD_VERSION:
+#ifdef TCS_SIGNED_INPUT
+        append("TCS 0.2-dev / " TCS_PROFILE_NAME " / " TCS_LAUNCH_NAME " signed terminal\r\n");
+#else
         append("TCS 0.2-dev / " TCS_PROFILE_NAME " / read-only terminal\r\n");
+#endif
         break;
     case TCS_CMD_STATUS: {
         struct tcs_snapshot s = tcs_snapshot_response(microkit_ppcall(CLIENT_CHANNEL,
@@ -98,6 +123,33 @@ static void execute(void)
     append("tcs> ");
 }
 
+#ifdef TCS_SIGNED_INPUT
+static void finish_packet(enum tcs_line_event event)
+{
+    if (event == TCS_LINE_READY) {
+        struct tcs_admin_command command = tcs_signed_command(signed_input.packet);
+        tcs_words_from_bytes(signed_input.packet, sizeof signed_input.packet);
+        microkit_msginfo reply = microkit_ppcall(2, microkit_msginfo_new(TCS_ADMIN_SUBMIT, 24));
+        struct tcs_admin_receipt receipt;
+        if (tcs_admin_receipt_decode(reply, &receipt) && tcs_admin_receipt_valid(command, receipt)) {
+            append("ADMIN seq="); decimal(receipt.command.sequence); append(" decision="); decimal(receipt.decision);
+            append(" audit="); decimal(receipt.audit_ok); append(" applied="); decimal(receipt.applied);
+            append(" state="); decimal(receipt.post.state); append(" generation="); decimal(receipt.post.generation); append("\r\n");
+        } else if (microkit_msginfo_get_label(reply) == TCS_ADMIN_ADMISSION && microkit_msginfo_get_count(reply) == 1 &&
+                   microkit_mr_get(0) > TCS_ADMIN_ACCEPTED && microkit_mr_get(0) <= TCS_ADMIN_BAD_COMPLETION) {
+            if (microkit_mr_get(0) == TCS_ADMIN_BAD_COMPLETION)
+                append("ADMIN UNCERTAIN; do not retry or advance sequence\r\n");
+            else {
+                append("ADMIN REJECTED status="); decimal(microkit_mr_get(0)); append("\r\n");
+            }
+        } else append("ADMIN UNAVAILABLE; do not retry an uncertain request\r\n");
+    } else if (event == TCS_LINE_CANCELLED) append("CANCELLED\r\n");
+    else append("ERROR discarded signed packet\r\n");
+    line = (struct tcs_line){0}; line.previous_cr = signed_input.previous_cr;
+    tcs_signed_discard(&signed_input); packet_mode = false; append("tcs> ");
+}
+#endif
+
 static void service(void)
 {
     /* Never wait for UART readiness or consume an unbounded input stream. */
@@ -108,6 +160,9 @@ static void service(void)
             enum tcs_line_event event = pending_event;
             pending_event = TCS_LINE_NONE;
             /* Finish echo before nested IPC can emit independent debug output. */
+#ifdef TCS_SIGNED_INPUT
+            if (packet_mode) { finish_packet(event); continue; }
+#endif
             if (event == TCS_LINE_READY)
                 execute();
             else if (event == TCS_LINE_REJECTED)
@@ -124,6 +179,9 @@ static void service(void)
         if (flags > (TCS_SERIAL_BYTE | TCS_SERIAL_LOSS) || byte > UINT8_MAX ||
             (!(flags & TCS_SERIAL_BYTE) && byte != 0)) { failed = true; break; }
         if (flags & TCS_SERIAL_LOSS) {
+#ifdef TCS_SIGNED_INPUT
+            if (packet_mode) tcs_signed_discard(&signed_input);
+#endif
             tcs_line_discard(&line);
             append("\r\nINPUT LOST; discard until Enter or Ctrl-C\r\n");
         }
@@ -131,7 +189,12 @@ static void service(void)
             (void)flush();
             return;
         }
-        struct tcs_line_feedback feedback = tcs_terminal_input(&line, (uint8_t)byte);
+        struct tcs_line_feedback feedback;
+#ifdef TCS_SIGNED_INPUT
+        if (packet_mode) feedback = tcs_signed_feed(&signed_input, (uint8_t)byte);
+        else
+#endif
+        feedback = tcs_terminal_input(&line, (uint8_t)byte);
         append(feedback.echo);
         pending_event = feedback.event;
     }
@@ -141,7 +204,11 @@ static void service(void)
 
 void init(void)
 {
+#ifdef TCS_SIGNED_INPUT
+    append("TCS SIGNED TERMINAL READY (" TCS_PROFILE_NAME ", " TCS_LAUNCH_NAME ")\r\ntcs> ");
+#else
     append("TCS TERMINAL READY (" TCS_PROFILE_NAME ", read-only)\r\ntcs> ");
+#endif
     service();
 }
 

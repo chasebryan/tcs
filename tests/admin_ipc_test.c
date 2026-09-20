@@ -5,7 +5,16 @@
 #define init admin_server_init
 #define notified admin_server_notified
 #define protected admin_server_handler
+#ifdef TCS_LAUNCH_IPC_TEST
+#define TCS_LAUNCH_MODE 1
+#include "../servers/launch_admin.c"
+#define BOOT_REQUEST TCS_LAUNCH_CONTEXT
+#define BOOT_REPLY TCS_LAUNCH_DATA
+#else
 #include "../servers/admin.c"
+#define BOOT_REQUEST TCS_TEST_BOOT_CONTEXT
+#define BOOT_REPLY TCS_TEST_BOOT_DATA
+#endif
 #undef init
 #undef notified
 #undef protected
@@ -18,7 +27,11 @@
 #undef protected
 #include "monocypher-ed25519.h"
 
+#ifdef TCS_LAUNCH_IPC_TEST
+static uint8_t context[112] = {'T','C','S','-','L','A','U','N','C','H',1,0,0,0,0,1}, secret[64];
+#else
 static uint8_t context[112] = {'T','C','S','-','B','O','O','T',1,1}, secret[64];
+#endif
 static unsigned current, executions, audits, audit_failure;
 static int corrupt_word = -1;
 static bool corrupt_shape, interleave, bad_boot;
@@ -27,9 +40,9 @@ static struct tcs_admin_command grant = {1, 0, {TCS_GRANT, 1, TCS_OBJECT, TCS_RE
 static microkit_msginfo test_ppcall(microkit_channel channel, microkit_msginfo message)
 {
     if (current == 0 && channel == 1) {
-        assert(message.label == TCS_TEST_BOOT_CONTEXT && message.count == 0);
+        assert(message.label == BOOT_REQUEST && message.count == 0);
         tcs_words_from_bytes(context, sizeof context);
-        return microkit_msginfo_new(TCS_TEST_BOOT_DATA, bad_boot ? 13 : 14);
+        return microkit_msginfo_new(BOOT_REPLY, bad_boot ? 13 : 14);
     }
     if (current == 0) {
         assert(channel == 2 && message.label == TCS_ADMIN_EXECUTE && message.count == 6);
@@ -210,4 +223,7 @@ int main(void)
     malformed(); transitions(); uncertain_completion(); limits(); receipt_matrix();
     crypto_wipe(secret, sizeof secret);
     puts("TCS ADMIN IPC TESTS PASS (real adapters, mocked kernel/audit transport)");
+#ifdef TCS_LAUNCH_IPC_TEST
+    puts("TCS LAUNCH ADMIN IPC TESTS PASS (public fixture launch-context profile)");
+#endif
 }

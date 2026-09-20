@@ -4,6 +4,18 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — one-shot launch and signed interactive UART
+
+Connected the host workflow to a separate eight-domain release guest. An exclusive session reservation is written before launching; failed execution and competing launches cannot normally reuse it. Public context and image copies remain in the private session directory; no private seed or extra file descriptor reaches QEMU. Bootstrap alone reads the firmware context and supplies it to administrator over private IPC. Terminal submits exact signed packets, never plaintext administration or direct policy calls.
+
+The bounded packet parser accepts exactly 384 lowercase hex digits, handles CRLF and cancellation, and discards the entire packet on invalid input, excess length, or transport loss. It waits for echo completion before submitting and checks correlated receipt shape/state before display. Existing administrator execution/pending semantics are shared unchanged with the test profile.
+
+Local native checks and all 50 Python groups pass, including twelve host-tool groups, both administrator adapters, exact graph mutations, profile separation, all packet lengths through 386, all 256 byte classes, and cancellation/loss at every frame position. Real QEMU tests pass the complete review/sign/one-shot launch flow, twelve policy transitions/receipts, audit-full reductions, replay and cross-launch rejection, malformed frames/signatures, and three injected UART breaks. A macOS descriptor-based image-loading failure was caught by real boot testing and replaced with private per-session image copies.
+
+Two separately built images are included: `interactive.img` (experimental operator mode) and `interactive-fixture.img` (explicitly public-fixture-only). All positive guest authentication uses public RFC fixtures; the operator guest's refusal of those fixtures is tested. No real credential was generated/imported or successful real-operator login claimed. All six prior images rebuild byte-for-byte unchanged and pass regression scenarios. See [operator lifecycle and limits](OPERATOR.md); GitHub Actions records clean-machine checks for each published commit.
+
+Next acceptance gates: explicit uncertainty/recovery semantics and better operator visibility without trusting unsigned display, plus broader malformed bootstrap/transport failure schedules. Production authorization, durable state/receipts, credential protection, snapshot/service-restart recovery, and kernel capability revocation remain open. No automated retries, snapshot resume, or key import are introduced.
+
 ## 2026-09-20 — experimental trusted-host review and signing
 
 Implemented an explicit host workflow for local identity creation, public context preparation, command review, and signing. It derives the public half from the private seed, binds approval to the exact command/key/realm/boot, and creates one non-overwriting request file per sequence. Private local directories/files, no symlink traversal, exact lengths, owner/link/mode/ACL checks, repository exclusion, core-dump suppression, and best-effort secret wiping bound the host interface. No ambient credentials, imports, automatic retries, or guest transport are provided.

@@ -9,4 +9,6 @@ __pycache__/
 identity.key
 identity.pub
 launch.context
+launch.used
+launch.img
 request-*.bin

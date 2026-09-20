@@ -25,7 +25,19 @@ int tcs_operator_test_entropy(void *output, size_t size)
     if (getenv("TCS_TEST_ENTROPY_ERROR")) return -1;
     uint8_t *bytes = output;
     if (size == 64) { memcpy(bytes, seed, 32); memset(bytes + 32, 0x54, 32); }
-    else if (size == 32) memset(bytes, getenv("TCS_TEST_SECOND_BOOT") ? 0x43 : 0x42, 32);
+    else if (size == 32) {
+        const char *nonce = getenv("TCS_TEST_NONCE_HEX");
+        if (nonce) {
+            if (strlen(nonce) != 64) return -1;
+            for (unsigned i = 0; i < 64; ++i) {
+                char c = nonce[i]; unsigned n;
+                if (c >= '0' && c <= '9') n = (unsigned)(c - '0');
+                else if (c >= 'a' && c <= 'f') n = (unsigned)(c - 'a' + 10);
+                else return -1;
+                if (i % 2) bytes[i/2] |= (uint8_t)n; else bytes[i/2] = (uint8_t)(n << 4);
+            }
+        } else memset(bytes, getenv("TCS_TEST_SECOND_BOOT") ? 0x43 : 0x42, 32);
+    }
     else return -1;
     return 0;
 }

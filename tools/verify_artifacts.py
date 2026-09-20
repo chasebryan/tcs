@@ -68,7 +68,15 @@ def main():
             admin.stat().st_size != admin_record["image_bytes"] or
             actual["artifacts/admin-test.img"] != admin_record["image_sha256"]):
         raise SystemExit("Administration IPC test image does not match build.json")
-    print("PASS saved debug/release/isolation/boot/admin-test images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    for name, mode in (("interactive", 0), ("interactive-fixture", 1)):
+        path = ROOT / "artifacts" / (name + ".img")
+        profile = record[name.replace("-", "_")]
+        if (profile["config"] != "release" or profile["launch_mode"] != mode or
+                profile["production_ready"] is not False or
+                path.stat().st_size != profile["image_bytes"] or
+                actual["artifacts/" + path.name] != profile["image_sha256"]):
+            raise SystemExit("Interactive image does not match build.json: " + name)
+    print("PASS eight saved images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":
