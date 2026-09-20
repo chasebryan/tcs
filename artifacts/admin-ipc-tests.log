@@ -1,0 +1,6 @@
+PASS exact admin/policy channels, wire shapes, no legacy admin endpoint, boot failure
+PASS correlated receipts, nested-MR clobber, stale post-auth state, audit failures and authority reductions
+PASS corrupted receipts leave committed requests pending; no untrusted completion or duplicate policy execution
+PASS independent admin/policy sequence exhaustion and saturated generation receipts
+PASS 176 valid state/generation/op/audit/precondition receipt combinations and inverted effects
+TCS ADMIN IPC TESTS PASS (real adapters, mocked kernel/audit transport)

@@ -3,6 +3,9 @@
 #include "tcs/admin.h"
 #include "tcs/boot.h"
 #include "monocypher-ed25519.h"
+#ifdef TCS_ADMIN_SCENARIO
+#include "admin/scenario.h"
+#endif
 int main(void)
 {
     uint8_t seed[32] = {0x9d,0x61,0xb1,0x9d,0xef,0xfd,0x5a,0x60,0xba,0x84,0x4a,0xf4,0x92,0xec,0x2c,0xc4,
@@ -13,11 +16,16 @@ int main(void)
     crypto_ed25519_key_pair(secret, context + 80, seed);
     struct tcs_boot_context decoded;
     if (tcs_boot_decode_test(context, sizeof context, &decoded) != TCS_BOOT_OK) return 1;
-    struct tcs_admin_command command = {1, 0, {TCS_GRANT, 1, TCS_OBJECT, TCS_READ, 0}};
-    if (!tcs_admin_encode(packet, decoded.realm, decoded.boot, command)) return 1;
-    crypto_ed25519_sign(packet + 128, secret, packet, 128);
+    if (fwrite(context, 1, sizeof context, stdout) != sizeof context) return 1;
+#ifndef TCS_ADMIN_SCENARIO
+    const struct tcs_admin_command scenario[] = {{1, 0, {TCS_GRANT, 1, TCS_OBJECT, TCS_READ, 0}}};
+#endif
+    for (size_t i = 0; i < sizeof scenario / sizeof scenario[0]; ++i) {
+        if (!tcs_admin_encode(packet, decoded.realm, decoded.boot, scenario[i])) return 1;
+        crypto_ed25519_sign(packet + 128, secret, packet, 128);
+        if (fwrite(packet, 1, sizeof packet, stdout) != sizeof packet) return 1;
+    }
     crypto_wipe(secret, sizeof secret);
-    if (fwrite(context, 1, sizeof context, stdout) != sizeof context ||
-        fwrite(packet, 1, sizeof packet, stdout) != sizeof packet || fflush(stdout)) return 1;
+    if (fflush(stdout)) return 1;
     return 0;
 }

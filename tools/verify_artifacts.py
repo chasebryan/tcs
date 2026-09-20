@@ -62,7 +62,13 @@ def main():
             boot.stat().st_size != boot_record["image_bytes"] or
             actual["artifacts/boot-test.img"] != boot_record["image_sha256"]):
         raise SystemExit("Boot context test image does not match build.json")
-    print("PASS saved debug/release/isolation/boot-test images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    admin = ROOT / "artifacts/admin-test.img"
+    admin_record = record["admin_ipc_test"]
+    if (admin_record["config"] != "release" or admin_record["test_only"] is not True or
+            admin.stat().st_size != admin_record["image_bytes"] or
+            actual["artifacts/admin-test.img"] != admin_record["image_sha256"]):
+        raise SystemExit("Administration IPC test image does not match build.json")
+    print("PASS saved debug/release/isolation/boot/admin-test images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,40 @@
+TCS ADMIN IPC TEST ONLY
+ADMIN PASS seq=1 decision=0 audit=1 applied=1 generation=1
+ADMIN PASS seq=2 decision=3 audit=1 applied=0 generation=1
+ADMIN PASS seq=3 decision=0 audit=1 applied=1 generation=2
+ADMIN PASS seq=4 decision=0 audit=1 applied=1 generation=3
+ADMIN PASS seq=5 decision=0 audit=1 applied=1 generation=4
+ADMIN PASS seq=6 decision=4 audit=1 applied=0 generation=4
+ADMIN PASS seq=7 decision=0 audit=1 applied=1 generation=5
+ADMIN PASS seq=8 decision=0 audit=1 applied=1 generation=6
+ADMIN PASS seq=9 decision=0 audit=0 applied=1 generation=7
+ADMIN PASS seq=10 decision=0 audit=0 applied=0 generation=7
+ADMIN PASS seq=11 decision=0 audit=0 applied=1 generation=8
+ADMIN PASS seq=12 decision=0 audit=0 applied=0 generation=8
+TCS ADMIN IPC PASS commands=12 state=quarantined generation=8
+TCS TERMINAL READY (release-kernel, read-only)
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> read 6
+READ DENIED status=5
+tcs> grant 1
+ERROR unknown or malformed command
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> restore 1
+ERROR unknown or malformed command
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> revoke 1
+ERROR unknown or malformed command
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> quarantine 1
+ERROR unknown or malformed command
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> status 2
+ERROR unknown or malformed command
+tcs> status
+SELF state=quarantined generation=8 object=0 rights=0
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 63735 (<unknown process>)

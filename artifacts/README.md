@@ -12,6 +12,8 @@
 
 `boot-test.img` is the separate two-domain [boot-context experiment](../docs/BOOT-CONTEXT.md). It executes real signature verification with public fixtures and host-generated launch identities, but has no policy server or administrative authority. `boot-context.log` records 15 actual guest cases including malformed/missing context, key/realm/signature mismatch, replay, DMA refusal, and reset termination; `boot-test-report.txt` records construction. `make boot-test-smoke-saved` needs a native C compiler for the public fixture helper, but not an SDK/cross-compiler. This is not operator provisioning or snapshot/rollback protection.
 
+`admin-test.img` is the eight-domain [signed administration IPC test](../docs/ADMIN-IPC.md), with an administrator, private conditional policy endpoint, and test-only fixture provider. `admin-ipc-boot.log` records 12 real signed commands, definitive receipts, and subsequent UART denials; `admin-test-report.txt` records its exact construction. `admin-ipc-tests.log` records sanitized adapter/malformed-receipt tests. Run `make admin-test-smoke-saved` with a native C compiler for public fixtures; no SDK download is needed. It uses no operator credentials and does not offer an interactive administration command.
+
 From the repository root, run the saved image without rebuilding:
 
 ```sh

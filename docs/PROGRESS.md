@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — signed administrator/policy IPC and definitive receipts
+
+Connected a separate administrator server to a strict conditional-policy adapter in an eight-domain release test profile. Policy accepts no legacy administration on that channel and independently sequences requests. Receipts bind the full command to its decision, audit outcome, applied flag, and post-state. Only validated receipts clear administrator pending state; invalid replies after commit block further admission without retrying. Ordinary profiles retain their prior graphs.
+
+Native sanitized real-adapter tests pass malformed channel/shape/boot cases, post-auth policy changes, nested register clobber, every corrupted receipt word, malformed audit acknowledgements, duplicate execution, and counter exhaustion. The real guest passes 12 signed commands and verifies each receipt against current policy through the ordinary client path. Audit-failed revoke/quarantine apply; grant/restore do not. UART commands remain read-only afterward. Public fixtures only, no real credential or deployment provisioning. See [IPC contract and limits](ADMIN-IPC.md).
+
+The receipt validator also accepts 176 valid state/generation/operation/audit/precondition combinations and rejects inverted applied flags. All 35 Python tests pass. The previous five images rebuild byte-for-byte unchanged; the new administration image and its evidence are separate.
+
 ## 2026-09-20 — trusted-launch transport and real guest signature tests
 
 Added a separate two-domain release test profile: one firmware-context owner and the existing isolated UART driver, with no policy authority. A bounded fw_cfg reader refuses DMA/unknown features, malformed directory data, duplicate target names/selectors, missing items, and wrong sizes. An exact test-only format carries realm, fresh launch nonce, and a public fixture key. Its real guest Ed25519 verifier checks signed commands, pending/replay state, and context binding. No real key is read or created.
@@ -69,6 +77,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Extend the observed test-launch boundary into an explicit operator-controlled public-key provisioning workflow and separate admin-server IPC path, with policy-side conditional mutation and definitive receipts. Keep the test-only format/fixtures out of deployment authority. Resolve verifier restarts before enabling lifecycle recovery: a fresh process alone is insufficient if snapshots/context files are reused. Ordinary terminal/driver messages must not impersonate the admin channel, and real credential creation/import remains operator-controlled.
+Implement an explicit operator-controlled public-key provisioning and host signing workflow, then add bounded signed-request input to the terminal without exposing legacy policy authority. The private execution/receipt path now exists, but its test boot format/fixtures remain excluded from deployment trust. Keep authenticated context discovery on the trusted host side, and keep real credential creation/import operator-controlled. Resolve verifier restarts before lifecycle recovery; reused contexts/snapshots remain unsafe.
 
 Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.

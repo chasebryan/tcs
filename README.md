@@ -40,6 +40,8 @@ The separate **release-kernel terminal** disables the SDK's kernel/runtime debug
 
 The next administration layer now has a [signed-request core](docs/ADMIN.md), with real Ed25519 verification, per-instance replay checks, and policy-generation preconditions. A separate [boot-context test image](docs/BOOT-CONTEXT.md) executes the verifier in the guest with fresh host-generated launch identities and public test signatures: `make boot-test-smoke` or `make boot-test-smoke-saved`. It has no policy authority and is **not a live login or administration endpoint**. Operator provisioning and restart-safe integration remain mandatory gates.
 
+A further [administration IPC test profile](docs/ADMIN-IPC.md) connects a separate administrator to policy and audit. `make admin-test-smoke` exercises 12 signed test commands and definitive execution receipts, including audit-failed revocation versus blocked grants; `make admin-test-smoke-saved` runs the included image. This uses public fixtures only and ends with a read-only terminal. It is not operator login or deployment provisioning.
+
 ## First server graph
 
 ```mermaid

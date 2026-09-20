@@ -38,6 +38,8 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: isolation-image isolation-smoke isolation-smoke-saved
 .PHONY: admin-cross-check
 .PHONY: boot-test-image boot-test-smoke boot-test-smoke-saved
+.PHONY: admin-ipc-test
+.PHONY: admin-test-image admin-test-smoke admin-test-smoke-saved
 .SECONDARY:
 all: test
 
@@ -83,10 +85,19 @@ $(BUILD_DIR)/admin_test: tests/admin_test.c lib/admin.c lib/admin_policy.c lib/p
 $(BUILD_DIR)/boot_test: tests/boot_test.c lib/boot.c include/tcs/boot.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/boot.c tests/boot_test.c -o "$@"
 
+$(BUILD_DIR)/admin_ipc_test: tests/admin_ipc_test.c servers/admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c $(HEADERS) tests/support/microkit.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c tests/admin_ipc_test.c -o "$@"
+
+admin-ipc-test: $(BUILD_DIR)/admin_ipc_test
+	"$(BUILD_DIR)/admin_ipc_test"
+
 $(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test check-system
+$(BUILD_DIR)/admin_fixture: tests/boot_fixture.c tests/admin/scenario.h lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_ADMIN_SCENARIO -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
@@ -97,6 +108,7 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/isolation_observer_test"
 	"$(BUILD_DIR)/admin_test"
 	"$(BUILD_DIR)/boot_test"
+	"$(BUILD_DIR)/admin_ipc_test"
 	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
@@ -104,6 +116,7 @@ check-system:
 	$(PYTHON) tools/check_system.py system/terminal.system --profile terminal
 	$(PYTHON) tools/check_system.py system/isolation.system --profile isolation
 	$(PYTHON) tools/check_system.py system/boot-test.system --profile boot-test
+	$(PYTHON) tools/check_system.py system/admin-test.system --profile admin-test
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -139,6 +152,39 @@ boot-test-smoke: boot-test-image $(BUILD_DIR)/boot_fixture
 
 boot-test-smoke-saved: verify-artifacts $(BUILD_DIR)/boot_fixture
 	$(PYTHON) tools/boot_context_test.py --qemu "$(QEMU)" --image artifacts/boot-test.img --fixture "$(BUILD_DIR)/boot_fixture" --log "$(BUILD_DIR)/saved-boot-context.log"
+
+$(RELEASE_DIR)/admin_server.o: servers/admin.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/admin_policy_server.o: servers/admin_policy.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/admin_%.o: tests/admin/%.c tests/admin/scenario.h servers/terminal.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/admin.elf: $(RELEASE_DIR)/admin_server.o $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_receipt_core.o $(RELEASE_DIR)/boot_core.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/admin_policy.elf: $(RELEASE_DIR)/admin_policy_server.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/admin_receipt_core.o $(RELEASE_DIR)/policy_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/admin_client.elf: $(RELEASE_DIR)/admin_client.o $(RELEASE_DIR)/admin_receipt_core.o $(RELEASE_DIR)/terminal_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/admin_boot.elf: $(RELEASE_DIR)/admin_boot.o $(RELEASE_DIR)/boot_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/admin-test.img: $(RELEASE_DIR)/admin.elf $(RELEASE_DIR)/admin_policy.elf $(RELEASE_DIR)/admin_client.elf $(RELEASE_DIR)/admin_boot.elf $(RELEASE_IMAGES) system/admin-test.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/admin-test.system --search-path "$(RELEASE_DIR)" \
+	    --board $(BOARD) --config release -o "$@" -r "$(RELEASE_DIR)/admin-test-report.txt"
+
+admin-test-image: $(RELEASE_DIR)/admin-test.img
+
+admin-test-smoke: admin-test-image $(BUILD_DIR)/admin_fixture
+	$(PYTHON) tools/admin_boot_test.py --qemu "$(QEMU)" --image "$(RELEASE_DIR)/admin-test.img" --fixture "$(BUILD_DIR)/admin_fixture" --log "$(BUILD_DIR)/admin-ipc-boot.log"
+
+admin-test-smoke-saved: verify-artifacts $(BUILD_DIR)/admin_fixture
+	$(PYTHON) tools/admin_boot_test.py --qemu "$(QEMU)" --image artifacts/admin-test.img --fixture "$(BUILD_DIR)/admin_fixture" --log "$(BUILD_DIR)/saved-admin-ipc-boot.log"
 
 $(BUILD_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(BUILD_DIR) check-tools
 	"$(ZIG)" cc $(TARGET_FLAGS) -c "$<" -o "$@"

@@ -75,7 +75,7 @@ def isolation_base(root):
 
 
 def validate(path, profile="seed"):
-    require(profile in {"seed", "terminal", "isolation", "boot-test"}, "unknown system profile")
+    require(profile in {"seed", "terminal", "isolation", "boot-test", "admin-test"}, "unknown system profile")
     if profile == "boot-test":
         validate_boot_test(ET.parse(path).getroot())
         return
@@ -83,6 +83,8 @@ def validate(path, profile="seed"):
     domains = TERMINAL_DOMAINS if terminal else DOMAINS
     expected_edges = TERMINAL_EDGES if terminal else EDGES
     root = ET.parse(path).getroot()
+    if profile == "admin-test":
+        admin_test_base(root)
     if profile == "isolation":
         isolation_base(root)
     require(root.tag == "system" and not root.attrib, "unexpected system root")
@@ -175,10 +177,36 @@ def validate_boot_test(root):
     print("PASS exact boot-test firmware/UART owners and sole output channel; no policy authority")
 
 
+def admin_test_base(root):
+    """Validate/remove exact admin-test additions, then apply the terminal checks."""
+    def shape(e):
+        return (e.tag, e.attrib, (e.text or "").strip(), (e.tail or "").strip(), [shape(c) for c in e])
+
+    def take(tag, wanted):
+        expected = ET.fromstring(wanted)
+        matches = [e for e in root.findall(tag) if shape(e) == shape(expected)]
+        require(len(matches) == 1, "unexpected admin-test " + tag)
+        root.remove(matches[0])
+
+    take("memory_region", '<memory_region name="fwcfg" size="0x1000" phys_addr="0x09020000" />')
+    take("protection_domain", '<protection_domain name="administrator" priority="25" budget="10000" period="10000"><program_image path="admin.elf" /></protection_domain>')
+    take("protection_domain", '<protection_domain name="test_boot" priority="70" budget="10000" period="10000"><program_image path="admin_boot.elf" /><map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" /></protection_domain>')
+    for caller, source, callee, target in (("terminal", 2, "administrator", 0),
+        ("administrator", 2, "policy", 0), ("administrator", 1, "test_boot", 0), ("terminal", 3, "test_boot", 1)):
+        take("channel", f'<channel><end pd="{caller}" id="{source}" pp="true" notify="false" /><end pd="{callee}" id="{target}" notify="false" /></channel>')
+    for name, image in (("terminal", "admin_client.elf"), ("policy", "admin_policy.elf")):
+        domains = root.findall(f"protection_domain[@name='{name}']")
+        require(len(domains) == 1, "missing/duplicate admin-test domain")
+        images = domains[0].findall("program_image")
+        require(len(images) == 1 and shape(images[0]) == shape(ET.fromstring(
+            f'<program_image path="{image}" />')), "unexpected admin-test image")
+        images[0].set("path", name + ".elf")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path")
-    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test"), default="seed")
+    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test", "admin-test"), default="seed")
     args = parser.parse_args()
     try:
         validate(args.path, args.profile)

@@ -40,3 +40,7 @@ jobs:
         run: make boot-test-smoke
       - name: Saved boot context test image
         run: make boot-test-smoke-saved
+      - name: Signed administration and execution receipts
+        run: make admin-test-smoke
+      - name: Saved signed administration test image
+        run: make admin-test-smoke-saved

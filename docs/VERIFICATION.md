@@ -6,7 +6,9 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
 | Signed administration core | Real Ed25519 RFC vectors; exact packet grammar; 1,536 one-bit corruptions; signed malformed requests; replay/realm/boot/key binding; pending completion and nonwrapping sequence tests under sanitizers |
-| Conditional admin policy | Host model checks generation at policy-owner evaluation, stale post-admission state, audit-denied grants, and audit-failed reductions; no IPC adapter yet |
+| Conditional admin policy | Real adapters under sanitizers; post-auth state change, nested register clobber, wrong channels/shapes, audit failures, sequence/generation exhaustion |
+| Definitive execution receipts | All 13 receipt words/shape corrupted in native tests; committed request stays pending, further admissions fail busy, policy rejects duplicate execution |
+| Signed administration guest | Separate eight-domain release test profile; 12 signed commands, live policy/status/read cross-checks, replay, stale state, audit exhaustion, and subsequent UART denial tests pass |
 | Freshness limit | Test demonstrates replay after volatile-state reset with reused boot identity; trusted per-incarnation freshness remains an integration gate |
 | Crypto provenance/target | Unmodified Monocypher 4.0.3 files match the pinned, publisher-checksummed archive; real verifier executes in the separate boot test guest, not ordinary images |
 | Boot context | 15 actual release-guest cases: fresh launch bindings, signature/key/realm mismatch, replay, missing/malformed data, DMA-enabled refusal; explicit public-fixture test format, no policy endpoint |
