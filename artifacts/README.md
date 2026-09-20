@@ -8,7 +8,9 @@
 
 `isolation.img` is **test-only**, with six faulting probe domains and a parent observer added to the release terminal graph. `isolation-boot.log` contains the six checked kernel-fault reports, protected-state verdict, and subsequent terminal tests; `isolation-report.txt` records the additional test authority. Run `make isolation-smoke-saved`. The [evidence scope](../docs/ISOLATION.md) is specific memory/device accesses, not arbitrary driver compromise or production fault recovery. Normal images do not contain these probes or observer capabilities.
 
-`admin-core-tests.log` records the sanitized native signed-request and policy tests. The administration and cryptographic sources also cross-compile for AArch64, but are not linked into any saved image. This log is **not guest-authentication evidence**; trusted boot freshness and key provisioning remain required before live administration. See [the administration contract](../docs/ADMIN.md).
+`admin-core-tests.log` records the sanitized native signed-request and policy tests. This log is **not guest-authentication evidence**; trusted boot freshness and key provisioning remain required before live administration. See [the administration contract](../docs/ADMIN.md).
+
+`boot-test.img` is the separate two-domain [boot-context experiment](../docs/BOOT-CONTEXT.md). It executes real signature verification with public fixtures and host-generated launch identities, but has no policy server or administrative authority. `boot-context.log` records 15 actual guest cases including malformed/missing context, key/realm/signature mismatch, replay, DMA refusal, and reset termination; `boot-test-report.txt` records construction. `make boot-test-smoke-saved` needs a native C compiler for the public fixture helper, but not an SDK/cross-compiler. This is not operator provisioning or snapshot/rollback protection.
 
 From the repository root, run the saved image without rebuilding:
 

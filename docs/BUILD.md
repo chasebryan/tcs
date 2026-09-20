@@ -37,6 +37,8 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | --- | --- |
 | `make test` | Sanitized policy/terminal/serial and self-status IPC tests, deterministic transitions/input, strict graph/mutation checks, and offline bootstrap tests; no downloads |
 | `make bootstrap` | Download and extract pinned SDK/compiler |
+| `make boot-test-smoke` | Build/run test-only trusted-launch transport and guest Ed25519 cases; public fixtures only |
+| `make boot-test-smoke-saved` | Run included boot-context test image; native C compiler required for fixture helper, no SDK required |
 | `make admin-cross-check` | Compile signed-administration and pinned Ed25519 code for AArch64; no live endpoint/image |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |

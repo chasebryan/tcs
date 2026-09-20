@@ -56,7 +56,13 @@ def main():
             isolation.stat().st_size != isolation_record["image_bytes"] or
             actual["artifacts/isolation.img"] != isolation_record["image_sha256"]):
         raise SystemExit("Isolation test image does not match build.json")
-    print("PASS saved debug/release/isolation images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    boot = ROOT / "artifacts/boot-test.img"
+    boot_record = record["boot_context_test"]
+    if (boot_record["config"] != "release" or boot_record["test_only"] is not True or
+            boot.stat().st_size != boot_record["image_bytes"] or
+            actual["artifacts/boot-test.img"] != boot_record["image_sha256"]):
+        raise SystemExit("Boot context test image does not match build.json")
+    print("PASS saved debug/release/isolation/boot-test images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

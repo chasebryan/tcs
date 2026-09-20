@@ -37,6 +37,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: terminal-release-image terminal-release-smoke terminal-release-smoke-saved terminal-release-run
 .PHONY: isolation-image isolation-smoke isolation-smoke-saved
 .PHONY: admin-cross-check
+.PHONY: boot-test-image boot-test-smoke boot-test-smoke-saved
 .SECONDARY:
 all: test
 
@@ -79,7 +80,13 @@ $(BUILD_DIR)/isolation_observer_test: tests/isolation_observer_test.c tests/isol
 $(BUILD_DIR)/admin_test: tests/admin_test.c lib/admin.c lib/admin_policy.c lib/policy.c include/tcs/admin.h include/tcs/policy.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/policy.c tests/admin_test.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test check-system
+$(BUILD_DIR)/boot_test: tests/boot_test.c lib/boot.c include/tcs/boot.h | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/boot.c tests/boot_test.c -o "$@"
+
+$(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
@@ -89,12 +96,14 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/isolation_test"
 	"$(BUILD_DIR)/isolation_observer_test"
 	"$(BUILD_DIR)/admin_test"
+	"$(BUILD_DIR)/boot_test"
 	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
 	$(PYTHON) tools/check_system.py system/tcs.system
 	$(PYTHON) tools/check_system.py system/terminal.system --profile terminal
 	$(PYTHON) tools/check_system.py system/isolation.system --profile isolation
+	$(PYTHON) tools/check_system.py system/boot-test.system --profile boot-test
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -112,6 +121,24 @@ $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o: $(RELEASE_DIR)/
 	"$(ZIG)" cc $(RELEASE_FLAGS) -I$(CRYPTO_DIR) -c "$<" -o "$@"
 
 admin-cross-check: $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
+
+$(RELEASE_DIR)/boot_probe.o: tests/boot/probe.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/boot_probe.elf: $(RELEASE_DIR)/boot_probe.o $(RELEASE_DIR)/boot_core.o $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(RELEASE_DIR)/boot-test.img: $(RELEASE_DIR)/boot_probe.elf $(RELEASE_DIR)/serial.elf system/boot-test.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/boot-test.system --search-path "$(RELEASE_DIR)" \
+	    --board $(BOARD) --config release -o "$@" -r "$(RELEASE_DIR)/boot-test-report.txt"
+
+boot-test-image: $(RELEASE_DIR)/boot-test.img
+
+boot-test-smoke: boot-test-image $(BUILD_DIR)/boot_fixture
+	$(PYTHON) tools/boot_context_test.py --qemu "$(QEMU)" --image "$(RELEASE_DIR)/boot-test.img" --fixture "$(BUILD_DIR)/boot_fixture" --log "$(BUILD_DIR)/boot-context.log"
+
+boot-test-smoke-saved: verify-artifacts $(BUILD_DIR)/boot_fixture
+	$(PYTHON) tools/boot_context_test.py --qemu "$(QEMU)" --image artifacts/boot-test.img --fixture "$(BUILD_DIR)/boot_fixture" --log "$(BUILD_DIR)/saved-boot-context.log"
 
 $(BUILD_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(BUILD_DIR) check-tools
 	"$(ZIG)" cc $(TARGET_FLAGS) -c "$<" -o "$@"

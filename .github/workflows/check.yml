@@ -36,3 +36,7 @@ jobs:
         run: make isolation-smoke
       - name: Boot saved isolation test image
         run: make isolation-smoke-saved
+      - name: Boot context and guest signature tests
+        run: make boot-test-smoke
+      - name: Saved boot context test image
+        run: make boot-test-smoke-saved

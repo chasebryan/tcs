@@ -4,6 +4,12 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — trusted-launch transport and real guest signature tests
+
+Added a separate two-domain release test profile: one firmware-context owner and the existing isolated UART driver, with no policy authority. A bounded fw_cfg reader refuses DMA/unknown features, malformed directory data, duplicate target names/selectors, missing items, and wrong sizes. An exact test-only format carries realm, fresh launch nonce, and a public fixture key. Its real guest Ed25519 verifier checks signed commands, pending/replay state, and context binding. No real key is read or created.
+
+Fifteen actual QEMU cases pass, including two fresh launches, cross-launch/key/realm mismatches, malformed or missing boot/command data, bad signature, DMA-enabled refusal, and reset termination with no repeated boot. Native sanitized reader tests and 33 Python tests cover callback failure, directory bounds, all topology attributes, and transcript corruption. This is a tested host-launch boundary, not operator provisioning or snapshot/in-VM-restart protection. See [boot context scope](BOOT-CONTEXT.md).
+
 ## 2026-09-20 — signed-administration and replay foundation
 
 Added exact 192-byte signed packets, real Ed25519 verification through pinned unmodified Monocypher 4.0.3, realm/boot binding, nonwrapping request sequences, one-pending-request admission, and definitive-completion handling. A separate policy-owner helper checks the signed expected generation immediately before candidate mutation, then uses existing audit commit semantics. None of this code is wired to a live admin endpoint or included in boot images yet.
@@ -63,6 +69,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Implement the trusted boot/incarnation-freshness and public-key provisioning boundary, then add the separate admin server's private IPC adapter and policy-side conditional mutation/receipt protocol. Use the signed-request core only with an independently authorized generated key and a fresh boot identity; a static reusable test image cannot provide deployment replay safety. Ordinary terminal/driver messages must not impersonate that admin channel. Keep real credential provisioning operator-controlled and do not embed test credentials as deployment authority.
+Extend the observed test-launch boundary into an explicit operator-controlled public-key provisioning workflow and separate admin-server IPC path, with policy-side conditional mutation and definitive receipts. Keep the test-only format/fixtures out of deployment authority. Resolve verifier restarts before enabling lifecycle recovery: a fresh process alone is insufficient if snapshots/context files are reused. Ordinary terminal/driver messages must not impersonate the admin channel, and real credential creation/import remains operator-controlled.
 
 Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.

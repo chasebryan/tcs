@@ -1,0 +1,201 @@
+# Initial Task (CapDL Initialiser) Details
+
+# IRQ Details
+	- IRQ: 'irq_33_serial'
+		* Number: 33
+		* Trigger: level
+		* CPU: 0
+
+
+# TCB Details
+	- TCB: 'tcb_boot_probe'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 10
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_boot_probe_root'
+			-> VSpace: 'pud_boot_probe'
+			-> IPC Buffer: 'frame_ipcbuf_boot_probe'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_boot_probe'
+			-> Notification: 'ntfn_boot_probe'
+
+	- TCB: 'tcb_monitor'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 255
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> VSpace: 'pud_monitor'
+			-> IPC Buffer: 'frame_ipcbuf_monitor'
+			-> CSpace: 'cnode_monitor'
+			-> Scheduling Context: 'sched_context_monitor'
+
+	- TCB: 'tcb_serial'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 60
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_serial_root'
+			-> VSpace: 'pud_serial'
+			-> IPC Buffer: 'frame_ipcbuf_serial'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_serial'
+			-> Notification: 'ntfn_serial'
+
+
+# CNode Details
+	- CNode: 'cnode_boot_probe'
+		* Slot: 1
+			-> Object: 'ntfn_boot_probe'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x1
+		* Slot: 3
+			-> Object: 'pud_boot_probe'
+		* Slot: 4
+			-> Object: 'reply_boot_probe'
+		* Slot: 74
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+
+	- CNode: 'cnode_monitor'
+		* Slot: 1
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'reply_monitor'
+		* Slot: 10
+			-> Object: 'tcb_boot_probe'
+		* Slot: 11
+			-> Object: 'tcb_serial'
+
+	- CNode: 'cnode_serial'
+		* Slot: 1
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x2
+		* Slot: 3
+			-> Object: 'pud_serial'
+		* Slot: 4
+			-> Object: 'reply_serial'
+		* Slot: 11
+			-> Object: 'ntfn_boot_probe'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 138
+			-> Object: 'irq_33_serial'
+
+	- CNode: 'cnode_boot_probe_root'
+		* Slot: 0
+			-> Object: 'cnode_boot_probe'
+
+	- CNode: 'cnode_serial_root'
+		* Slot: 0
+			-> Object: 'cnode_serial'
+
+
+# Architecture Specific Details
+
+# Kernel Objects Details: ID, Type, Name, Physical Address
+	0 - Page(4 KiB): 'frame_mr_uart_000000000' @ 0x000009000000
+	1 - Page(4 KiB): 'frame_mr_fwcfg_000000000' @ 0x000009020000
+	2 - CNode: 'cnode_boot_probe' @ 0x000060000000
+	3 - CNode: 'cnode_monitor' @ 0x000060004000
+	4 - CNode: 'cnode_serial' @ 0x000060008000
+	5 - PageTable: 'pud_boot_probe' @ 0x00006000c000
+	6 - PageTable: 'pud_monitor' @ 0x00006000e000
+	7 - PageTable: 'pud_serial' @ 0x0000602be000
+	8 - Page(4 KiB): 'frame_boot_probe_stack_000000000' @ 0x0000602bd000
+	9 - Page(4 KiB): 'frame_boot_probe_stack_000000001' @ 0x0000602c0000
+	10 - Page(4 KiB): 'frame_elf_boot_probe_000000000' @ 0x0000602c1000
+	11 - Page(4 KiB): 'frame_elf_boot_probe_000000001' @ 0x0000602c2000
+	12 - Page(4 KiB): 'frame_elf_boot_probe_000000002' @ 0x0000602c3000
+	13 - Page(4 KiB): 'frame_elf_boot_probe_000000003' @ 0x0000602c4000
+	14 - Page(4 KiB): 'frame_elf_boot_probe_000000004' @ 0x0000602c5000
+	15 - Page(4 KiB): 'frame_elf_boot_probe_000000005' @ 0x0000602c6000
+	16 - Page(4 KiB): 'frame_elf_boot_probe_000000006' @ 0x0000602c7000
+	17 - Page(4 KiB): 'frame_elf_boot_probe_000000007' @ 0x0000602c8000
+	18 - Page(4 KiB): 'frame_elf_boot_probe_000000008' @ 0x0000602c9000
+	19 - Page(4 KiB): 'frame_elf_boot_probe_000000009' @ 0x0000602ca000
+	20 - Page(4 KiB): 'frame_elf_boot_probe_000000010' @ 0x0000602cb000
+	21 - Page(4 KiB): 'frame_elf_boot_probe_000000011' @ 0x0000602cc000
+	22 - Page(4 KiB): 'frame_elf_boot_probe_000000012' @ 0x0000602cd000
+	23 - Page(4 KiB): 'frame_elf_boot_probe_000000013' @ 0x0000602ce000
+	24 - Page(4 KiB): 'frame_elf_boot_probe_000000014' @ 0x0000602cf000
+	25 - Page(4 KiB): 'frame_elf_boot_probe_000000015' @ 0x0000602d0000
+	26 - Page(4 KiB): 'frame_elf_boot_probe_000000016' @ 0x0000602d1000
+	27 - Page(4 KiB): 'frame_elf_boot_probe_000000017' @ 0x0000602d2000
+	28 - Page(4 KiB): 'frame_elf_boot_probe_000000018' @ 0x0000602d3000
+	29 - Page(4 KiB): 'frame_elf_boot_probe_000000019' @ 0x0000602d4000
+	30 - Page(4 KiB): 'frame_elf_boot_probe_000000020' @ 0x0000602d5000
+	31 - Page(4 KiB): 'frame_elf_boot_probe_000000021' @ 0x0000602d6000
+	32 - Page(4 KiB): 'frame_elf_boot_probe_000000022' @ 0x0000602d7000
+	33 - Page(4 KiB): 'frame_elf_boot_probe_000000023' @ 0x0000602d8000
+	34 - Page(4 KiB): 'frame_elf_boot_probe_000000024' @ 0x0000602d9000
+	35 - Page(4 KiB): 'frame_elf_boot_probe_000000025' @ 0x0000602da000
+	36 - Page(4 KiB): 'frame_elf_boot_probe_000000026' @ 0x0000602db000
+	37 - Page(4 KiB): 'frame_elf_boot_probe_000000027' @ 0x0000602dc000
+	38 - Page(4 KiB): 'frame_elf_boot_probe_000000028' @ 0x0000602dd000
+	39 - Page(4 KiB): 'frame_elf_boot_probe_000000029' @ 0x0000602de000
+	40 - Page(4 KiB): 'frame_elf_boot_probe_000000030' @ 0x0000602df000
+	41 - Page(4 KiB): 'frame_elf_boot_probe_000000031' @ 0x0000602e0000
+	42 - Page(4 KiB): 'frame_elf_boot_probe_000000032' @ 0x0000602e1000
+	43 - Page(4 KiB): 'frame_elf_boot_probe_000000033' @ 0x0000602e2000
+	44 - Page(4 KiB): 'frame_elf_monitor_000000000' @ 0x0000602e3000
+	45 - Page(4 KiB): 'frame_elf_monitor_000000001' @ 0x0000602e4000
+	46 - Page(4 KiB): 'frame_elf_monitor_000000002' @ 0x0000602e5000
+	47 - Page(4 KiB): 'frame_elf_monitor_000000003' @ 0x0000602e6000
+	48 - Page(4 KiB): 'frame_elf_monitor_000000004' @ 0x0000602e7000
+	49 - Page(4 KiB): 'frame_elf_monitor_000000005' @ 0x0000602e8000
+	50 - Page(4 KiB): 'frame_elf_serial_000000000' @ 0x0000602e9000
+	51 - Page(4 KiB): 'frame_elf_serial_000000001' @ 0x0000602ea000
+	52 - Page(4 KiB): 'frame_ipcbuf_boot_probe' @ 0x0000602eb000
+	53 - Page(4 KiB): 'frame_ipcbuf_monitor' @ 0x0000602ec000
+	54 - Page(4 KiB): 'frame_ipcbuf_serial' @ 0x0000602ed000
+	55 - Page(4 KiB): 'frame_monitor_stack' @ 0x0000602ee000
+	56 - Page(4 KiB): 'frame_serial_stack_000000000' @ 0x0000602ef000
+	57 - Page(4 KiB): 'frame_serial_stack_000000001' @ 0x0000602f0000
+	58 - PageTable: 'pd_boot_probe_vaddr_0x200000' @ 0x0000602f1000
+	59 - PageTable: 'pd_boot_probe_vaddr_0xffffe00000' @ 0x0000602f2000
+	60 - PageTable: 'pd_monitor_vaddr_0x200000' @ 0x0000602f3000
+	61 - PageTable: 'pd_monitor_vaddr_0xffffe00000' @ 0x0000602f4000
+	62 - PageTable: 'pd_serial_vaddr_0x200000' @ 0x0000602f5000
+	63 - PageTable: 'pd_serial_vaddr_0xffffe00000' @ 0x0000602f6000
+	64 - PageTable: 'pt_boot_probe_vaddr_0x200000' @ 0x0000602f7000
+	65 - PageTable: 'pt_boot_probe_vaddr_0x5000000' @ 0x0000602f8000
+	66 - PageTable: 'pt_boot_probe_vaddr_0xfffffff000' @ 0x0000602f9000
+	67 - PageTable: 'pt_monitor_vaddr_0x200000' @ 0x0000602fa000
+	68 - PageTable: 'pt_monitor_vaddr_0xffffffd000' @ 0x0000602fb000
+	69 - PageTable: 'pt_serial_vaddr_0x200000' @ 0x0000602fc000
+	70 - PageTable: 'pt_serial_vaddr_0x4000000' @ 0x0000602fd000
+	71 - PageTable: 'pt_serial_vaddr_0xfffffff000' @ 0x0000602fe000
+	72 - CNode: 'cnode_boot_probe_root' @ 0x0000602ff000
+	73 - CNode: 'cnode_serial_root' @ 0x0000602ff800
+	74 - TCB: 'tcb_boot_probe' @ 0x000060300000
+	75 - TCB: 'tcb_monitor' @ 0x000060300800
+	76 - TCB: 'tcb_serial' @ 0x000060301000
+	77 - SchedContext: 'sched_context_boot_probe' @ 0x000060301800
+	78 - SchedContext: 'sched_context_monitor' @ 0x000060301900
+	79 - SchedContext: 'sched_context_serial' @ 0x000060301a00
+	80 - Notification: 'ntfn_boot_probe' @ 0x000060301b00
+	81 - Notification: 'ntfn_serial' @ 0x000060301b40
+	82 - Reply: 'reply_boot_probe' @ 0x000060301b80
+	83 - Reply: 'reply_monitor' @ 0x000060301ba0
+	84 - Reply: 'reply_serial' @ 0x000060301bc0
+	85 - Endpoint: 'ep_fault_monitor' @ 0x000060301be0
+	86 - Endpoint: 'ep_serial' @ 0x000060301bf0

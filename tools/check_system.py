@@ -75,7 +75,10 @@ def isolation_base(root):
 
 
 def validate(path, profile="seed"):
-    require(profile in {"seed", "terminal", "isolation"}, "unknown system profile")
+    require(profile in {"seed", "terminal", "isolation", "boot-test"}, "unknown system profile")
+    if profile == "boot-test":
+        validate_boot_test(ET.parse(path).getroot())
+        return
     terminal = profile != "seed"
     domains = TERMINAL_DOMAINS if terminal else DOMAINS
     expected_edges = TERMINAL_EDGES if terminal else EDGES
@@ -147,10 +150,35 @@ def validate(path, profile="seed"):
     print("PASS exact", profile, "resources, images, RPC identities, priorities, and notifications")
 
 
+def validate_boot_test(root):
+    # Independent complete allowlist. No policy server, admin route, or children.
+    expected = ET.fromstring('''<system>
+      <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+      <memory_region name="fwcfg" size="0x1000" phys_addr="0x09020000" />
+      <protection_domain name="boot_probe" priority="10" budget="10000" period="10000">
+        <program_image path="boot_probe.elf" />
+        <map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" />
+      </protection_domain>
+      <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+      </protection_domain>
+      <channel>
+        <end pd="boot_probe" id="0" pp="true" notify="false" />
+        <end pd="serial" id="1" notify="true" />
+      </channel>
+    </system>''')
+    def shape(e):
+        return (e.tag, e.attrib, (e.text or "").strip(), (e.tail or "").strip(), [shape(c) for c in e])
+    require(shape(root) == shape(expected), "unexpected boot-test authority or structure")
+    print("PASS exact boot-test firmware/UART owners and sole output channel; no policy authority")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path")
-    parser.add_argument("--profile", choices=("seed", "terminal", "isolation"), default="seed")
+    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test"), default="seed")
     args = parser.parse_args()
     try:
         validate(args.path, args.profile)

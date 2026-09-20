@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system>
+    <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+    <memory_region name="fwcfg" size="0x1000" phys_addr="0x09020000" />
+    <protection_domain name="boot_probe" priority="10" budget="10000" period="10000">
+        <program_image path="boot_probe.elf" />
+        <map mr="fwcfg" vaddr="0x5000000" perms="rw" cached="false" setvar_vaddr="fwcfg_base_vaddr" />
+    </protection_domain>
+    <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+    </protection_domain>
+    <channel>
+        <end pd="boot_probe" id="0" pp="true" notify="false" />
+        <end pd="serial" id="1" notify="true" />
+    </channel>
+</system>
