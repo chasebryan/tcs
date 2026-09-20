@@ -1,0 +1,42 @@
+{
+  "microkit_version": "2.3.0",
+  "zig_version": "0.14.1",
+  "hosts": {
+    "Darwin-arm64": [
+      {
+        "url": "https://github.com/seL4/microkit/releases/download/2.3.0/microkit-sdk-2.3.0-macos-aarch64.tar.gz",
+        "sha256": "f688ca8cc3545ee95681c509efc00cf212f79b75d919a9639371fff8fa51dc20",
+        "directory": "microkit-sdk-2.3.0"
+      },
+      {
+        "url": "https://ziglang.org/download/0.14.1/zig-aarch64-macos-0.14.1.tar.xz",
+        "sha256": "39f3dc5e79c22088ce878edc821dedb4ca5a1cd9f5ef915e9b3cc3053e8faefa",
+        "directory": "zig-aarch64-macos-0.14.1"
+      }
+    ],
+    "Linux-x86_64": [
+      {
+        "url": "https://github.com/seL4/microkit/releases/download/2.3.0/microkit-sdk-2.3.0-linux-x86-64.tar.gz",
+        "sha256": "e12e507f72c87cbf5c514df9e9b0c66103b42298852f44c045d5729ea3de4f89",
+        "directory": "microkit-sdk-2.3.0"
+      },
+      {
+        "url": "https://ziglang.org/download/0.14.1/zig-x86_64-linux-0.14.1.tar.xz",
+        "sha256": "24aeeec8af16c381934a6cd7d95c807a8cb2cf7df9fa40d359aa884195c4716c",
+        "directory": "zig-x86_64-linux-0.14.1"
+      }
+    ],
+    "Linux-aarch64": [
+      {
+        "url": "https://github.com/seL4/microkit/releases/download/2.3.0/microkit-sdk-2.3.0-linux-aarch64.tar.gz",
+        "sha256": "98a18bd5d90386c7a72a541083a8e1a3129ae83bf27d71c65759b36344718841",
+        "directory": "microkit-sdk-2.3.0"
+      },
+      {
+        "url": "https://ziglang.org/download/0.14.1/zig-aarch64-linux-0.14.1.tar.xz",
+        "sha256": "f7a654acc967864f7a050ddacfaa778c7504a0eca8d2b678839c21eea47c992b",
+        "directory": "zig-aarch64-linux-0.14.1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+# Build and run TCS Seed
+
+A fresh checkout contains all TCS source, system configuration, tests, a saved boot image, and upstream source archives. It does not require another workspace or an installed TCS system. Build tools are downloaded on first bootstrap; this is not an air-gapped or self-hosting SDK.
+
+The guest target is `qemu_virt_aarch64`, debug configuration, one emulated Cortex-A53 CPU and **2 GiB guest RAM**. The RAM size is part of the upstream kernel configuration. The runner attaches no disk or network device. There is no Linux kernel or distribution inside the guest.
+
+## Prerequisites
+
+Supported build hosts: Linux x86_64, Linux AArch64, and Apple Silicon macOS. Use a checkout path without spaces (the Make dependency paths require this). Native tests need a C11 compiler with address/undefined-behavior sanitizers, Make, and Python 3.9+. Bootstrap also needs curl, tar, gzip, and xz. Boot tests need `qemu-system-aarch64` on PATH.
+
+Ubuntu 24.04:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y build-essential python3 curl ca-certificates tar xz-utils git qemu-system-arm
+```
+
+macOS: install Apple's Command Line Tools if needed (`xcode-select --install`), then install QEMU and xz using your package manager (Homebrew: `brew install qemu xz`). Ensure Python 3.9+ is available as `python3`.
+
+## Fresh checkout
+
+```sh
+git clone https://github.com/chasebryan/tcs.git
+cd tcs
+make test
+make bootstrap
+make smoke
+```
+
+`make bootstrap` selects the host-specific versions in `tools/toolchains.json`: Microkit SDK **2.3.0** and Zig **0.14.1**. It downloads to `.tools/`, checks SHA-256 before extraction, and never runs an installer. Hashes come from the official release metadata. Detached publisher signatures have not been independently checked.
+
+Bootstrap can be rerun. It rechecks the cached archive hash and reuses directories bearing its completion marker. The marker records extraction provenance; it does not prove the extracted files have not subsequently changed. Unknown existing directories are preserved and rejected. For a new extraction use `make bootstrap TOOLS_DIR=.tools-fresh`, followed by `make smoke TOOLS_DIR=.tools-fresh`. A partial download/extraction is never installed as a completed tool.
+
+## Targets
+
+| Command | Result |
+| --- | --- |
+| `make test` | Sanitized policy tests, 50,000 transition steps, graph check, offline bootstrap tests; no toolchain downloads |
+| `make bootstrap` | Download and extract pinned SDK/compiler |
+| `make image` | Build five server ELFs and `build/loader.img` |
+| `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
+| `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
+| `make smoke-saved` | Verify and boot `artifacts/loader.img`; no SDK/compiler needed |
+
+The smoke test waits at most 30 seconds for a verdict. The guest deliberately idles after the automated scenario; no login prompt is expected. The runner terminates only its own emulator process. Generated build files and compiler caches are confined to `build/` (or the specified `BUILD_DIR`).
+
+Paths may be overridden explicitly:
+
+```sh
+make smoke BUILD_DIR=build-custom MICROKIT_SDK=/path/to/microkit-sdk-2.3.0 \
+  ZIG=/path/to/zig QEMU=/path/to/qemu-system-aarch64
+```
+
+Use a fresh build directory when changing SDK/compiler paths or versions; Make does not fingerprint tool executables. This milestone checks the exact SDK/compiler version but does not rebuild the SDK itself. See [upstream source](../third_party/README.md) for kernel/runtime source and upstream rebuild instructions.
+
+## macOS linker troubleshooting
+
+If native tests fail on a system-library `.tbd` mentioning an unsupported architecture such as `arm64e.x1`, select a compatible installed Apple SDK with `SDKROOT` and retry using a fresh `BUILD_DIR`. The initial host passed with:
+
+```sh
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk make test
+```
+
+That path is an example, not a TCS dependency; it must exist on your host. Matching/updating the installed Command Line Tools and SDK is the general fix. Freestanding TCS compilation does not use the Apple SDK.
+
+## Automation and saved evidence
+
+The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots both the new and saved images. Consult the run for the exact commit, not the existence of the workflow alone.
+
+The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.

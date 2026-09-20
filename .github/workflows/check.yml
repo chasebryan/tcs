@@ -1,0 +1,24 @@
+name: TCS Seed
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  seed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Native policy tests
+        run: make test
+      - name: Saved artifacts and source inputs
+        run: make verify-artifacts
+      - name: Pinned build tools
+        run: make bootstrap
+      - name: Repeated bootstrap
+        run: make bootstrap
+      - name: Emulator
+        run: sudo apt-get update && sudo apt-get install -y qemu-system-arm
+      - name: Build and boot
+        run: make smoke
+      - name: Boot saved image
+        run: make smoke-saved

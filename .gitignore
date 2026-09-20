@@ -1,0 +1,7 @@
+/build/
+/build-*/
+/.tools*/
+/.zig-cache/
+__pycache__/
+*.pyc
+.DS_Store

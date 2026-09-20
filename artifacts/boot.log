@@ -1,0 +1,190 @@
+LDR|INFO: Setting all interrupts to Group 1
+LDR|INFO: GICv2 ITLinesNumber: 0x00000008
+LDR|INFO|CPU0: CurrentEL=EL2
+LDR|INFO|CPU0: Resetting CNTVOFF
+LDR|INFO: disabling MMU (if it was enabled)
+LDR|INFO: PSCI version is 1.1
+LDR|INFO: loader for seL4 starting
+LDR|INFO: flags:
+             seL4 configured as hypervisor
+LDR|INFO: kernel:      entry:   0x0000008060000000
+LDR|INFO: root server: physmem: 0x0000000060258000 -- 0x00000000602c0000
+LDR|INFO:              virtmem: 0x0000000000200000 -- 0x0000000000268000
+LDR|INFO:              entry  : 0x0000000000222fe8
+LDR|INFO: region: 0x00000000   addr: 0x0000000060000000   size: 0x0000000000258000   offset: 0x0000000000000000   type: 0x0000000000000001
+LDR|INFO: region: 0x00000001   addr: 0x0000000060258000   size: 0x000000000000b2b8   offset: 0x0000000000258000   type: 0x0000000000000001
+LDR|INFO: region: 0x00000002   addr: 0x00000000602732b8   size: 0x000000000001475c   offset: 0x00000000002632b8   type: 0x0000000000000001
+LDR|INFO: region: 0x00000003   addr: 0x0000000060297a18   size: 0x0000000000010088   offset: 0x0000000000277a14   type: 0x0000000000000001
+LDR|INFO: region: 0x00000004   addr: 0x00000000602a8000   size: 0x0000000000003ed0   offset: 0x0000000000287a9c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000005   addr: 0x00000000602ac000   size: 0x0000000000012000   offset: 0x000000000028b96c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000006   addr: 0x00000000602bf000   size: 0x00000000000001f8   offset: 0x000000000029d96c   type: 0x0000000000000001
+LDR|INFO: copying region 0x00000000
+LDR|INFO: copying region 0x00000001
+LDR|INFO: copying region 0x00000002
+LDR|INFO: copying region 0x00000003
+LDR|INFO: copying region 0x00000004
+LDR|INFO: copying region 0x00000005
+LDR|INFO: copying region 0x00000006
+LDR|INFO|CPU0: active CPUs to start: 0x00000001
+LDR|INFO|CPU0: enabling MMU
+LDR|INFO|CPU0: CurrentEL=EL2
+LDR|INFO|CPU0: Resetting CNTVOFF
+LDR|INFO|CPU0: enabling MMU
+LDR|INFO|CPU0: jumping to kernel
+Bootstrapping kernel
+Warning: Could not infer GIC interrupt target ID, assuming 0.
+Available phys memory regions: 1
+  [60000000..c0000000)
+Reserved virt address space regions: 2
+  [8060000000..8060258000)
+  [8060258000..80602c0000)
+Booting all finished, dropped to user space
+INFO  [sel4_capdl_initializer::initialize] Starting CapDL initializer
+INFO  [sel4_capdl_initializer::initialize] Starting threads
+MON|INFO: Microkit Monitor started!
+TCS audit ready (volatile, bounded)
+TCS policy ready
+TCS storage ready (read-only fixture)
+TCS client ready
+
+TCS 0.1.0 Seed | seL4 / Microkit | AArch64
+TCS audit decision 1
+PASS default deny
+TCS audit decision 2
+PASS admin grants session
+TCS audit decision 3
+PASS authorized IPC read
+TCS audit decision 4
+PASS wrong object denied
+TCS audit decision 5
+PASS write escalation denied
+TCS audit decision 6
+PASS revoke acknowledged
+TCS audit decision 7
+PASS revoked session denied
+TCS audit decision 8
+PASS explicit regrant
+TCS audit decision 9
+PASS old session remains stale
+TCS audit decision 10
+PASS new session works
+TCS audit decision 11
+PASS quarantine acknowledged
+TCS audit decision 12
+PASS quarantine blocks reads
+TCS audit decision 13
+PASS quarantine blocks grants
+TCS audit decision 14
+PASS explicit restore
+TCS audit decision 15
+PASS restore grants no access
+PASS malformed IPC denied
+PASS client cannot grant through storage
+TCS audit decision 16
+PASS grant to different subject
+TCS audit decision 17
+PASS other subject handle denied
+TCS audit decision 18
+PASS grant before audit exhaustion
+PASS audit count available
+PASS audit record readback
+TCS audit decision 19
+PASS bounded audit append
+TCS audit decision 20
+PASS bounded audit append
+TCS audit decision 21
+PASS bounded audit append
+TCS audit decision 22
+PASS bounded audit append
+TCS audit decision 23
+PASS bounded audit append
+TCS audit decision 24
+PASS bounded audit append
+TCS audit decision 25
+PASS bounded audit append
+TCS audit decision 26
+PASS bounded audit append
+TCS audit decision 27
+PASS bounded audit append
+TCS audit decision 28
+PASS bounded audit append
+TCS audit decision 29
+PASS bounded audit append
+TCS audit decision 30
+PASS bounded audit append
+TCS audit decision 31
+PASS bounded audit append
+TCS audit decision 32
+PASS bounded audit append
+TCS audit decision 33
+PASS bounded audit append
+TCS audit decision 34
+PASS bounded audit append
+TCS audit decision 35
+PASS bounded audit append
+TCS audit decision 36
+PASS bounded audit append
+TCS audit decision 37
+PASS bounded audit append
+TCS audit decision 38
+PASS bounded audit append
+TCS audit decision 39
+PASS bounded audit append
+TCS audit decision 40
+PASS bounded audit append
+TCS audit decision 41
+PASS bounded audit append
+TCS audit decision 42
+PASS bounded audit append
+TCS audit decision 43
+PASS bounded audit append
+TCS audit decision 44
+PASS bounded audit append
+TCS audit decision 45
+PASS bounded audit append
+TCS audit decision 46
+PASS bounded audit append
+TCS audit decision 47
+PASS bounded audit append
+TCS audit decision 48
+PASS bounded audit append
+TCS audit decision 49
+PASS bounded audit append
+TCS audit decision 50
+PASS bounded audit append
+TCS audit decision 51
+PASS bounded audit append
+TCS audit decision 52
+PASS bounded audit append
+TCS audit decision 53
+PASS bounded audit append
+TCS audit decision 54
+PASS bounded audit append
+TCS audit decision 55
+PASS bounded audit append
+TCS audit decision 56
+PASS bounded audit append
+TCS audit decision 57
+PASS bounded audit append
+TCS audit decision 58
+PASS bounded audit append
+TCS audit decision 59
+PASS bounded audit append
+TCS audit decision 60
+PASS bounded audit append
+TCS audit decision 61
+PASS bounded audit append
+TCS audit decision 62
+PASS bounded audit append
+TCS audit decision 63
+PASS bounded audit append
+TCS audit decision 64
+PASS bounded audit append
+TCS audit unavailable: grants/reads denied; reductions remain effective
+PASS full audit denies reads
+TCS audit unavailable: grants/reads denied; reductions remain effective
+PASS full audit denies grants
+TCS audit unavailable: grants/reads denied; reductions remain effective
+PASS revoke reports missing audit
+TCS SEED PASS
+qemu-system-aarch64: terminating on signal 15 from pid 50103 (<unknown process>)

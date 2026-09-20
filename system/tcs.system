@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system>
+    <protection_domain name="console" priority="10" budget="10000" period="10000">
+        <program_image path="console.elf" />
+    </protection_domain>
+    <protection_domain name="client" priority="20" budget="10000" period="10000">
+        <program_image path="client.elf" />
+    </protection_domain>
+    <protection_domain name="storage" priority="30" budget="10000" period="10000">
+        <program_image path="storage.elf" />
+    </protection_domain>
+    <protection_domain name="policy" priority="40" budget="10000" period="10000">
+        <program_image path="policy.elf" />
+    </protection_domain>
+    <protection_domain name="audit" priority="50" budget="10000" period="10000">
+        <program_image path="audit.elf" />
+    </protection_domain>
+    <channel>
+        <end pd="console" id="0" pp="true" />
+        <end pd="policy" id="0" />
+    </channel>
+    <channel>
+        <end pd="console" id="1" pp="true" />
+        <end pd="client" id="0" />
+    </channel>
+    <channel>
+        <end pd="client" id="1" pp="true" />
+        <end pd="storage" id="0" />
+    </channel>
+    <channel>
+        <end pd="storage" id="1" pp="true" />
+        <end pd="policy" id="1" />
+    </channel>
+    <channel>
+        <end pd="policy" id="2" pp="true" />
+        <end pd="audit" id="0" />
+    </channel>
+    <channel>
+        <end pd="console" id="2" pp="true" />
+        <end pd="audit" id="1" />
+    </channel>
+</system>
