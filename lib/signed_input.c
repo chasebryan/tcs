@@ -32,7 +32,7 @@ struct tcs_line_feedback tcs_signed_feed(struct tcs_signed_input *s, uint8_t byt
 }
 static uint64_t load(const uint8_t *p)
 { uint64_t value = 0; for (unsigned i = 0; i < 8; ++i) value |= (uint64_t)p[i] << (8*i); return value; }
-struct tcs_admin_command tcs_signed_command(const uint8_t *p)
+struct tcs_admin_command tcs_signed_command(const uint8_t p[TCS_ADMIN_PACKET_BYTES])
 {
     return (struct tcs_admin_command){load(p+80), load(p+120),
         {load(p+88), load(p+96), load(p+104), load(p+112), 0}};

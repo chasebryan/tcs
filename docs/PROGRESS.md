@@ -16,6 +16,8 @@ Two separately built images are included: `interactive.img` (experimental operat
 
 Next acceptance gates: explicit uncertainty/recovery semantics and better operator visibility without trusting unsigned display, plus broader malformed bootstrap/transport failure schedules. Production authorization, durable state/receipts, credential protection, snapshot/service-restart recovery, and kernel capability revocation remain open. No automated retries, snapshot resume, or key import are introduced.
 
+Clean-machine follow-up: GCC rejected pointer spelling in a function definition whose header used an array parameter. The definition now uses the same explicit packet bound as its declaration; no warning checks are disabled and no runtime semantics change. CI results must be read for the follow-up commit, not assumed from the local compiler's acceptance.
+
 ## 2026-09-20 — experimental trusted-host review and signing
 
 Implemented an explicit host workflow for local identity creation, public context preparation, command review, and signing. It derives the public half from the private seed, binds approval to the exact command/key/realm/boot, and creates one non-overwriting request file per sequence. Private local directories/files, no symlink traversal, exact lengths, owner/link/mode/ACL checks, repository exclusion, core-dump suppression, and best-effort secret wiping bound the host interface. No ambient credentials, imports, automatic retries, or guest transport are provided.

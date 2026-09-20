@@ -61,7 +61,7 @@
     "lib/launch.c": "7a6a035829835bde0d2310f39b0261763bbfcf66ae159ef20fdbd8fac1cc3fa0",
     "lib/policy.c": "acb3cae258090d5801241fc168a5f9ba741f333cc7bf91ed4bf692a301ac51cd",
     "lib/serial.c": "9368c94a32b4b9ac595f685683316186b476f824a8f1418dc7362388bdd9718a",
-    "lib/signed_input.c": "e194cca437eca7ac0a86f04b3daa4cfa3eabde94da74f9cd38900cc0c030fae1",
+    "lib/signed_input.c": "d5139a3b3d373b6c08fc04569e8533dfbd8b2b5d88eac8f16d94e3478955cca4",
     "lib/terminal.c": "42905717f58adf461e58d6b13df4ecc1d19c72f7db1823db539b8e5e20a92b7e",
     "servers/admin.c": "28369cf4aa9e4abc3596404c50496c08159758f0c0807c872f92b1fd50087167",
     "servers/admin_policy.c": "257ba7f8f5ba35dd1e5a7f85a46a0a00d1f56d7a6625f8202092934274b138e2",
