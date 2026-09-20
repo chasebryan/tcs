@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — experimental trusted-host review and signing
+
+Implemented an explicit host workflow for local identity creation, public context preparation, command review, and signing. It derives the public half from the private seed, binds approval to the exact command/key/realm/boot, and creates one non-overwriting request file per sequence. Private local directories/files, no symlink traversal, exact lengths, owner/link/mode/ACL checks, repository exclusion, core-dump suppression, and best-effort secret wiping bound the host interface. No ambient credentials, imports, automatic retries, or guest transport are provided.
+
+Public test fixtures exercise actual signatures/admission, all operations and integer limits, altered approval/context/key, malformed public data, file/ACL/link rejection, four competing signers, entropy failure, partial writes, and uncertain synchronization. Fixture formats and binary are separate; operator mode refuses known RFC fixtures. The new public context codec also cross-compiles for AArch64, but no guest accepts it yet. No real credential was generated/imported. See [workflow and explicit limits](OPERATOR.md).
+
+All 45 Python tests and native checks pass locally. All six images rebuild byte-for-byte unchanged and pass their actual QEMU regression suites. Saved host evidence is `artifacts/operator-tests.log`; remote validation is recorded per published commit in GitHub Actions.
+
 ## 2026-09-20 — signed administrator/policy IPC and definitive receipts
 
 Connected a separate administrator server to a strict conditional-policy adapter in an eight-domain release test profile. Policy accepts no legacy administration on that channel and independently sequences requests. Receipts bind the full command to its decision, audit outcome, applied flag, and post-state. Only validated receipts clear administrator pending state; invalid replies after commit block further admission without retrying. Ordinary profiles retain their prior graphs.
@@ -77,6 +85,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Implement an explicit operator-controlled public-key provisioning and host signing workflow, then add bounded signed-request input to the terminal without exposing legacy policy authority. The private execution/receipt path now exists, but its test boot format/fixtures remain excluded from deployment trust. Keep authenticated context discovery on the trusted host side, and keep real credential creation/import operator-controlled. Resolve verifier restarts before lifecycle recovery; reused contexts/snapshots remain unsafe.
+Connect the experimental host workflow to a trusted one-shot launcher and an explicitly selected guest provisioning profile, then add bounded signed-request input without exposing legacy policy authority. Preparing a fresh context is not yet enforcing one-launch use; the new context format is deliberately not accepted by existing test guests. Keep context discovery on the trusted host side and real credential creation operator-controlled. Preserve no-retry behavior for uncertain receipts. Resolve verifier restarts before lifecycle recovery; reused contexts/snapshots remain unsafe.
 
 Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.

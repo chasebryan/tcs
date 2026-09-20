@@ -42,6 +42,8 @@ The next administration layer now has a [signed-request core](docs/ADMIN.md), wi
 
 A further [administration IPC test profile](docs/ADMIN-IPC.md) connects a separate administrator to policy and audit. `make admin-test-smoke` exercises 12 signed test commands and definitive execution receipts, including audit-failed revocation versus blocked grants; `make admin-test-smoke-saved` runs the included image. This uses public fixtures only and ends with a read-only terminal. It is not operator login or deployment provisioning.
 
+`make operator-tools` builds an [experimental host-side operator tool](docs/OPERATOR.md) for explicit key creation, public launch-context preparation, exact command review, and signing. It never creates credentials during the build or tests; `make operator-test` uses public fixtures only. No current guest accepts its new context format, and it neither launches a guest nor sends commands. Trusted launcher integration and bounded signed terminal input are the next gate.
+
 ## First server graph
 
 ```mermaid

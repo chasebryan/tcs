@@ -37,12 +37,14 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | --- | --- |
 | `make test` | Sanitized policy/terminal/serial and self-status IPC tests, deterministic transitions/input, strict graph/mutation checks, and offline bootstrap tests; no downloads |
 | `make bootstrap` | Download and extract pinned SDK/compiler |
+| `make operator-tools` | Build experimental host review/signing tool; no credential creation or guest provisioning |
+| `make operator-test` | Sanitized public-context and host workflow tests using only public RFC fixtures |
 | `make boot-test-smoke` | Build/run test-only trusted-launch transport and guest Ed25519 cases; public fixtures only |
 | `make boot-test-smoke-saved` | Run included boot-context test image; native C compiler required for fixture helper, no SDK required |
 | `make admin-ipc-test` | Sanitized real administrator/policy adapters with mocked transport and corrupted receipts |
 | `make admin-test-smoke` | Build/run separate signed administration IPC test profile with public fixtures |
 | `make admin-test-smoke-saved` | Run saved administration test image; native C fixture compiler required, no SDK required |
-| `make admin-cross-check` | Compile signed-administration and pinned Ed25519 code for AArch64; no live endpoint/image |
+| `make admin-cross-check` | Compile signed-administration, public launch-context codec, and pinned Ed25519 code for AArch64; no new endpoint/image |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
@@ -100,4 +102,4 @@ The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflow
 
 The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.
 
-Signed-administration host tests run within `make test` using included, unmodified Monocypher 4.0.3 source; no additional download/package manager is needed. Keys in those tests are public RFC fixtures. No operator key file or environment credential is read. See [the protocol and deployment gates](ADMIN.md).
+Signed-administration and [host operator workflow](OPERATOR.md) tests run within `make test` using included, unmodified Monocypher 4.0.3 source; no additional download/package manager is needed. Keys in those tests are public RFC fixtures, stored only in private temporary test directories. No actual operator key file or ambient/environment credential is read. Local Linux/macOS filesystem mode/ACL behavior is required for the operator tests. See [the protocol and deployment gates](ADMIN.md).

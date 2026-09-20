@@ -5,3 +5,8 @@
 __pycache__/
 *.pyc
 .DS_Store
+# Defense in depth: host credentials/context/requests do not belong in source.
+identity.key
+identity.pub
+launch.context
+request-*.bin

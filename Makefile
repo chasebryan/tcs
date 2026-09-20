@@ -40,6 +40,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: boot-test-image boot-test-smoke boot-test-smoke-saved
 .PHONY: admin-ipc-test
 .PHONY: admin-test-image admin-test-smoke admin-test-smoke-saved
+.PHONY: operator-tools operator-test
 .SECONDARY:
 all: test
 
@@ -97,7 +98,25 @@ $(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS
 $(BUILD_DIR)/admin_fixture: tests/boot_fixture.c tests/admin/scenario.h lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -DTCS_ADMIN_SCENARIO -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test check-system
+$(BUILD_DIR)/tcs-operator: tools/operator.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tools/operator.c -o "$@"
+
+$(BUILD_DIR)/operator_fixture: tools/operator.c tests/operator_entropy.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_OPERATOR_TEST_ONLY -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tools/operator.c tests/operator_entropy.c -o "$@"
+
+$(BUILD_DIR)/operator_verify: tests/operator_verify.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tests/operator_verify.c -o "$@"
+
+$(BUILD_DIR)/launch_test: tests/launch_test.c lib/launch.c include/tcs/launch.h | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/launch.c tests/launch_test.c -o "$@"
+
+operator-tools: $(BUILD_DIR)/tcs-operator
+
+operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test
+	"$(BUILD_DIR)/launch_test"
+	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'operator_test.py'
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
@@ -109,7 +128,8 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/admin_test"
 	"$(BUILD_DIR)/boot_test"
 	"$(BUILD_DIR)/admin_ipc_test"
-	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
+	"$(BUILD_DIR)/launch_test"
+	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
 	$(PYTHON) tools/check_system.py system/tcs.system
@@ -133,7 +153,7 @@ $(RELEASE_DIR)/admin_policy.o: lib/admin_policy.c $(HEADERS) Makefile | $(RELEAS
 $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o: $(RELEASE_DIR)/%.o: $(CRYPTO_DIR)/%.c $(CRYPTO_HEADERS) Makefile | $(RELEASE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -I$(CRYPTO_DIR) -c "$<" -o "$@"
 
-admin-cross-check: $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
+admin-cross-check: $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o $(RELEASE_DIR)/launch_core.o
 
 $(RELEASE_DIR)/boot_probe.o: tests/boot/probe.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"

@@ -5,6 +5,8 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Check | Observed result |
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
+| Host operator workflow | Public-fixture CLI tests: independent review-digest/wire checks; actual Ed25519 admission; approval/context/key mismatch; exact numbers; private modes, links, FIFO, ACL, and repository rejection; exclusive concurrent signing; partial-write/sync/entropy failures |
+| Public launch codec | Sanitized exact lengths, 256 header corruptions, zero error outputs, mode separation, and three RFC fixture exclusions; not arbitrary-key validity or freshness proof |
 | Signed administration core | Real Ed25519 RFC vectors; exact packet grammar; 1,536 one-bit corruptions; signed malformed requests; replay/realm/boot/key binding; pending completion and nonwrapping sequence tests under sanitizers |
 | Conditional admin policy | Real adapters under sanitizers; post-auth state change, nested register clobber, wrong channels/shapes, audit failures, sequence/generation exhaustion |
 | Definitive execution receipts | All 13 receipt words/shape corrupted in native tests; committed request stays pending, further admissions fail busy, policy rejects duplicate execution |
