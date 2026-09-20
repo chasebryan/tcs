@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — visible editing and real UART break recovery
+
+Added bounded safe echo, single-cell tab/delete behavior, cancellation display, and deferred command execution until echo is flushed. Transport loss produces an explicit notice and continues rejecting the incomplete line until Enter or Ctrl-C. The host terminal adapter test covers full/partial writes, ordering, loss, and malformed replies. Exhaustive single-byte echo tests cover all 256 input values.
+
+The actual QEMU test now injects three serial breaks through a private temporary QMP socket. It observes the prefix before injection and the driver loss report afterward, verifies that interrupted commands do not reach policy, then proves Enter/Ctrl-C recovery using fresh commands and audit sequence numbers. The test matches exact response bytes rather than treating echoed prompt text as completion. A sandbox initially blocked the local socket; the authorized local-socket test passed. No TCP listener or guest network interface was added.
+
+Limits remain explicit: no Unicode/full-screen editing, no physical UART evidence, no coverage claim for every overrun/queue-loss schedule, and the debug kernel still shares the output device.
+
 ## 2026-09-20 — live channel-bound self-status
 
 The terminal's `status` command now queries actual policy metadata through the existing client/storage chain. Every request has zero words; policy binds the subject to its storage channel. Added a bounded four-word snapshot contract and strict reply decoding. No additional capabilities, administrator route, mutation, or audit append was introduced. Snapshot errors expose no metadata, and a snapshot never replaces the normal access check.
@@ -33,6 +41,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Add safe input echo and runtime transport-loss injection tests, then a separate release-kernel terminal profile to remove the shared debug output route. Preserve exact reply/input contracts and the existing seed lifecycle test while improving usability.
+Build and test a separate release-kernel terminal profile to remove the shared debug output route. Keep debug seed lifecycle tests available, separate build directories/configurations, and explicit kernel-configuration claims. Then add negative device/memory-access fault tests before granting an administration service any control authority.
 
 Design the separate administration/authentication boundary before making any control command interactive. Continue into lifecycle supervision only after those boundaries have executable tests.

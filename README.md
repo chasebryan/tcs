@@ -32,7 +32,7 @@ The same commands work on supported Linux x86_64/AArch64 and Apple Silicon hosts
 
 To boot the included image without downloading a compiler or SDK, install QEMU and run `make smoke-saved`. This is a standalone bootable seed, not yet a complete general-purpose OS or an offline toolchain distribution.
 
-For the new terminal, run `make terminal-smoke` for scripted real-UART tests or `make terminal-run` to use it. Commands: `help`, `version`, `status`, `read <generation>`. Input echo is not yet implemented; exit QEMU with **Ctrl-A, then X**. Reads are denied by default because this profile contains no administrator. `status` reports the caller's live policy state, generation, object, and rights; it cannot select another subject or grant access. `make terminal-smoke-saved` tests the included terminal image without a compiler.
+For the new terminal, run `make terminal-smoke` for scripted real-UART tests or `make terminal-run` to use it. Commands: `help`, `version`, `status`, `read <generation>`. Input is echoed; Backspace/Delete edit and Ctrl-C cancels. Exit QEMU with **Ctrl-A, then X**. Reads are denied by default because this profile contains no administrator. `status` reports the caller's live policy state, generation, object, and rights; it cannot select another subject or grant access. `make terminal-smoke-saved` tests the included terminal image without a compiler, including injected serial breaks.
 
 ## First server graph
 

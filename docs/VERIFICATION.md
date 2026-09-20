@@ -7,6 +7,9 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
 | Terminal input core | Read-only command allowlist; exact-span parsing; integer overflow; line overflow, control-byte rejection, and recovery under sanitizers |
 | Terminal byte sequences | 100,000 deterministic input bytes preserve bounded-buffer invariants; not a coverage-guided fuzzing claim |
+| Terminal echo | All 256 byte values classified; bounded generated feedback, tab/backspace/delete cells, CRLF/cancel, no raw rejected controls |
+| Terminal backpressure | Sanitized runtime adapter test verifies partial/full TX, echo-before-service-call ordering, transport-loss rejection and fail-stop on malformed driver replies |
+| Runtime serial faults | Three QMP-injected UART breaks, with loss reports, rejection of interrupted commands, Enter/Ctrl-C recovery, and subsequent audit sequence checked in real QEMU |
 | Serial queue | Wrap, overflow/loss ordering, and 100,000 deterministic transitions under sanitizers |
 | Serial adapter | Mocked registers/IPC: malformed word counts, invalid byte values, unknown caller, full TX readiness, unrelated IRQ preservation, 64-read IRQ bound, error propagation |
 | Terminal graph | Exact six-domain graph, UART mapping/IRQ only in serial, one-way driver notification, no policy-admin or audit-query route; 15 negative mutations |

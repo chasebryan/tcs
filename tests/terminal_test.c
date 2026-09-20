@@ -108,11 +108,49 @@ static void byte_sequences(void)
     puts("PASS 100000 deterministic input bytes preserve line-buffer invariants");
 }
 
+static void safe_echo(void)
+{
+    struct tcs_line line = {0};
+    struct tcs_line_feedback f = tcs_terminal_input(&line, 8);
+    assert(f.echo[0] == 0);
+    f = tcs_terminal_input(&line, 'a'); assert(strcmp(f.echo, "a") == 0);
+    f = tcs_terminal_input(&line, '\t'); assert(strcmp(f.echo, " ") == 0);
+    f = tcs_terminal_input(&line, 127); assert(strcmp(f.echo, "\b \b") == 0);
+    f = tcs_terminal_input(&line, 8); assert(strcmp(f.echo, "\b \b") == 0);
+    f = tcs_terminal_input(&line, '\r'); assert(strcmp(f.echo, "\r\n") == 0);
+    f = tcs_terminal_input(&line, '\n'); assert(f.echo[0] == 0);
+    f = tcs_terminal_input(&line, 3); assert(strcmp(f.echo, "^C\r\n") == 0);
+    for (unsigned byte = 0; byte <= UINT8_MAX; ++byte) {
+        struct tcs_line clean = {0};
+        f = tcs_terminal_input(&clean, (uint8_t)byte);
+        assert(f.echo[4] == 0);
+        if (byte >= 32 && byte <= 126)
+            assert(f.echo[0] == (char)byte && f.echo[1] == 0);
+        else if (byte == '\t') assert(strcmp(f.echo, " ") == 0);
+        else if (byte == 3) assert(strcmp(f.echo, "^C\r\n") == 0);
+        else if (byte == '\r' || byte == '\n') assert(strcmp(f.echo, "\r\n") == 0);
+        else assert(f.echo[0] == 0);
+    }
+    for (unsigned i = 0; i < TCS_LINE_CAPACITY - 1; ++i)
+        assert(tcs_terminal_input(&line, 'x').echo[0] == 'x');
+    assert(tcs_terminal_input(&line, 'x').echo[0] == 0);
+    assert(tcs_terminal_input(&line, 8).echo[0] == 0);
+    assert(tcs_terminal_input(&line, 'h').echo[0] == 0);
+    f = tcs_terminal_input(&line, '\n');
+    assert(f.event == TCS_LINE_REJECTED && strcmp(f.echo, "\r\n") == 0);
+    assert(tcs_terminal_input(&line, 'h').echo[0] == 'h');
+    tcs_line_discard(&line);
+    assert(tcs_terminal_input(&line, 'e').echo[0] == 0);
+    assert(tcs_terminal_input(&line, 3).event == TCS_LINE_CANCELLED);
+    puts("PASS bounded safe echo, tab/backspace cells, control suppression, and rejected-line recovery");
+}
+
 int main(void)
 {
     command_contract();
     editing_and_recovery();
     byte_sequences();
+    safe_echo();
     puts("TCS TERMINAL CORE TESTS PASS");
     return 0;
 }

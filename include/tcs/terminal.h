@@ -30,6 +30,13 @@ struct tcs_command {
     uint64_t generation;
 };
 
+/* At most four generated display bytes plus NUL; never raw control input. */
+struct tcs_line_feedback {
+    enum tcs_line_event event;
+    char echo[5];
+};
+struct tcs_line_feedback tcs_terminal_input(struct tcs_line *line, uint8_t byte);
+
 /* After READY, bytes/length remain valid until the next input byte. A rejected
  * line stays rejected until its delimiter or Ctrl-C, even after backspaces.
  * The caller must mark UART/ring-buffer byte loss using tcs_line_discard(). */

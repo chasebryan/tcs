@@ -42,9 +42,9 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
 | `make smoke-saved` | Verify and boot `artifacts/loader.img`; no SDK/compiler needed |
 | `make terminal-image` | Build the separate six-domain UART terminal into `build/terminal.img` |
-| `make terminal-smoke` | Script actual UART commands and negative cases; save `build/terminal-boot.log` |
+| `make terminal-smoke` | Script UART editing/commands and injected serial breaks; save `build/terminal-boot.log` |
 | `make terminal-smoke-saved` | Verify and exercise `artifacts/terminal.img`; no SDK/compiler needed |
-| `make terminal-run` | Interactive no-echo terminal; Ctrl-A, then X exits QEMU |
+| `make terminal-run` | Interactive terminal with bounded echo/editing; Ctrl-A, then X exits QEMU |
 
 The smoke test waits at most 30 seconds for a verdict. The guest deliberately idles after the automated scenario; no login prompt is expected. The runner terminates only its own emulator process. Generated build files and compiler caches are confined to `build/` (or the specified `BUILD_DIR`).
 
@@ -56,6 +56,10 @@ make smoke BUILD_DIR=build-custom MICROKIT_SDK=/path/to/microkit-sdk-2.3.0 \
 ```
 
 Use a fresh build directory when changing SDK/compiler paths or versions; Make does not fingerprint tool executables. This milestone checks the exact SDK/compiler version but does not rebuild the SDK itself. See [upstream source](../third_party/README.md) for kernel/runtime source and upstream rebuild instructions.
+
+## Local emulator control
+
+The terminal smoke tests use a private temporary Unix-domain socket under `/tmp` for QEMU control, with no TCP listener or guest network device. The harness negotiates QMP and injects UART breaks, then closes the socket and removes its own temporary directory. Sandboxed environments must permit this local socket. A bind-permission error is a host test-environment limitation, not evidence that the guest boot failed. Interactive `terminal-run` does not require this test-control socket.
 
 ## macOS linker troubleshooting
 

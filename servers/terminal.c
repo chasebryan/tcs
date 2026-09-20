@@ -5,6 +5,7 @@
 #define SERIAL_CHANNEL 0u
 #define CLIENT_CHANNEL 1u
 static struct tcs_line line;
+static enum tcs_line_event pending_event;
 static char output[256];
 static size_t output_length, output_sent;
 static bool failed;
@@ -103,6 +104,18 @@ static void service(void)
     for (unsigned step = 0; step < 32 && !failed; ++step) {
         if (!flush())
             return; /* The driver notifies after progress or TX readiness. */
+        if (pending_event != TCS_LINE_NONE) {
+            enum tcs_line_event event = pending_event;
+            pending_event = TCS_LINE_NONE;
+            /* Finish echo before nested IPC can emit independent debug output. */
+            if (event == TCS_LINE_READY)
+                execute();
+            else if (event == TCS_LINE_REJECTED)
+                append("ERROR discarded input line\r\ntcs> ");
+            else if (event == TCS_LINE_CANCELLED)
+                append("CANCELLED\r\ntcs> ");
+            continue;
+        }
         microkit_msginfo msg = microkit_ppcall(SERIAL_CHANNEL,
             microkit_msginfo_new(TCS_LABEL(TCS_SERIAL_READ), 0));
         if (microkit_msginfo_get_label(msg) != TCS_SERIAL_DATA ||
@@ -110,17 +123,17 @@ static void service(void)
         uint64_t flags = microkit_mr_get(0), byte = microkit_mr_get(1);
         if (flags > (TCS_SERIAL_BYTE | TCS_SERIAL_LOSS) || byte > UINT8_MAX ||
             (!(flags & TCS_SERIAL_BYTE) && byte != 0)) { failed = true; break; }
-        if (flags & TCS_SERIAL_LOSS)
+        if (flags & TCS_SERIAL_LOSS) {
             tcs_line_discard(&line);
-        if (!(flags & TCS_SERIAL_BYTE))
+            append("\r\nINPUT LOST; discard until Enter or Ctrl-C\r\n");
+        }
+        if (!(flags & TCS_SERIAL_BYTE)) {
+            (void)flush();
             return;
-        enum tcs_line_event event = tcs_line_feed(&line, (uint8_t)byte);
-        if (event == TCS_LINE_READY)
-            execute();
-        else if (event == TCS_LINE_REJECTED)
-            append("ERROR discarded input line\r\ntcs> ");
-        else if (event == TCS_LINE_CANCELLED)
-            append("CANCELLED\r\ntcs> ");
+        }
+        struct tcs_line_feedback feedback = tcs_terminal_input(&line, (uint8_t)byte);
+        append(feedback.echo);
+        pending_event = feedback.event;
     }
     if (!failed)
         (void)flush(); /* Ensures a final command's output gets a wakeup. */
@@ -128,7 +141,7 @@ static void service(void)
 
 void init(void)
 {
-    append("TCS TERMINAL READY (read-only, no echo)\r\ntcs> ");
+    append("TCS TERMINAL READY (read-only)\r\ntcs> ");
     service();
 }
 

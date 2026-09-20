@@ -49,6 +49,25 @@ enum tcs_line_event tcs_line_feed(struct tcs_line *line, uint8_t byte)
     return TCS_LINE_NONE;
 }
 
+struct tcs_line_feedback tcs_terminal_input(struct tcs_line *line, uint8_t byte)
+{
+    size_t previous_length = line->completed ? 0 : line->length;
+    struct tcs_line_feedback feedback = {tcs_line_feed(line, byte), {0}};
+    if (feedback.event == TCS_LINE_READY || feedback.event == TCS_LINE_REJECTED) {
+        feedback.echo[0] = '\r'; feedback.echo[1] = '\n';
+    } else if (feedback.event == TCS_LINE_CANCELLED) {
+        feedback.echo[0] = '^'; feedback.echo[1] = 'C';
+        feedback.echo[2] = '\r'; feedback.echo[3] = '\n';
+    } else if (!line->rejected && (byte == 8 || byte == 127) &&
+               line->length < previous_length) {
+        feedback.echo[0] = '\b'; feedback.echo[1] = ' '; feedback.echo[2] = '\b';
+    } else if (!line->rejected && line->length == previous_length + 1) {
+        /* A tab occupies one displayed cell, matching one-byte backspace. */
+        feedback.echo[0] = byte == '\t' ? ' ' : (char)byte;
+    }
+    return feedback;
+}
+
 static bool space(char byte)
 {
     return byte == ' ' || byte == '\t';
