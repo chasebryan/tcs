@@ -89,6 +89,44 @@ class SystemTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("notification authority forbidden", result.stderr)
 
+    def test_terminal_profile_and_mutations(self):
+        original = ET.parse(ROOT / "system/terminal.system").getroot()
+        with contextlib.redirect_stdout(io.StringIO()):
+            checker.validate(ROOT / "system/terminal.system", "terminal")
+
+        def serial(root):
+            return root.find("protection_domain[@name='serial']")
+
+        def admin_route(root):
+            channel = ET.SubElement(root, "channel")
+            ET.SubElement(channel, "end", pd="terminal", id="2", pp="true", notify="false")
+            ET.SubElement(channel, "end", pd="policy", id="0", notify="false")
+
+        changes = {
+            "admin route": admin_route,
+            "extra physical page": lambda r: r[0].set("size", "0x2000"),
+            "different device": lambda r: r[0].set("phys_addr", "0x9010000"),
+            "executable MMIO": lambda r: serial(r).find("map").set("perms", "rwx"),
+            "cached device": lambda r: serial(r).find("map").set("cached", "true"),
+            "different mapping": lambda r: serial(r).find("map").set("vaddr", "0x5000000"),
+            "different IRQ": lambda r: serial(r).find("irq").set("irq", "34"),
+            "IRQ channel collision": lambda r: serial(r).find("irq").set("id", "1"),
+            "edge IRQ": lambda r: serial(r).find("irq").set("trigger", "edge"),
+            "serial CPU budget": lambda r: serial(r).set("budget", "10000"),
+            "terminal device access": lambda r: r[1].append(copy.deepcopy(serial(r).find("map"))),
+            "terminal sends notification": lambda r: r.find("channel/end").set("notify", "true"),
+            "serial calls terminal": lambda r: r.find("channel")[1].set("pp", "true"),
+            "missing serial wakeup": lambda r: r.find("channel")[1].set("notify", "false"),
+            "missing device": lambda r: r.remove(r[0]),
+        }
+        for name, change in changes.items():
+            with self.subTest(name=name):
+                root = copy.deepcopy(original)
+                change(root)
+                self.write(root)
+                with self.assertRaises(ValueError):
+                    checker.validate(self.path, "terminal")
+
 
 if __name__ == "__main__":
     unittest.main()

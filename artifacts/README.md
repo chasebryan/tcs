@@ -2,6 +2,8 @@
 
 `loader.img` is the TCS debug image for QEMU AArch64. It contains the seL4 kernel, Microkit boot/runtime components, and five TCS servers. TCS source is in this repository; exact upstream source archives and notices are in [third_party/](../third_party/README.md) and `upstream-licenses/`.
 
+`terminal.img` is the separate six-domain read-only terminal development image. `terminal-boot.log` records scripted actual-UART tests; `terminal-report.txt` records its capability allocation. Run `make terminal-smoke-saved` to exercise it without a compiler. No administrative endpoint is exposed in this profile. Both images use the debug kernel; neither is a production release.
+
 From the repository root, run the saved image without rebuilding:
 
 ```sh

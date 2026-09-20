@@ -7,6 +7,10 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
 | Terminal input core | Read-only command allowlist; exact-span parsing; integer overflow; line overflow, control-byte rejection, and recovery under sanitizers |
 | Terminal byte sequences | 100,000 deterministic input bytes preserve bounded-buffer invariants; not a coverage-guided fuzzing claim |
+| Serial queue | Wrap, overflow/loss ordering, and 100,000 deterministic transitions under sanitizers |
+| Serial adapter | Mocked registers/IPC: malformed word counts, invalid byte values, unknown caller, full TX readiness, unrelated IRQ preservation, 64-read IRQ bound, error propagation |
+| Terminal graph | Exact six-domain graph, UART mapping/IRQ only in serial, one-way driver notification, no policy-admin or audit-query route; 15 negative mutations |
+| UART runtime | Actual QEMU serial commands, default-denied reads through policy, CRLF, editing, cancellation, control bytes, overflow and recovery; separate saved image and transcript |
 | Transition sequences | 50,000 deterministic steps; generation monotonicity, subject separation, state/right consistency, and authorized grants checked |
 | Graph validation | Five domains, six declared channel pairs, exact program/identity bindings, no extra resources, increasing RPC priorities, and all unused notification rights disabled |
 | Graph rejection tests | Extra memory/device/IRQ/child authority, wrong images/identities, altered scheduling, duplicate/missing elements, and implicit notification rights rejected; checks stay active under Python -O |
@@ -23,3 +27,5 @@ The boot transcript ends with `TCS SEED PASS`. Copies of the final transcript an
 The first boot attempt used 1 GiB RAM and halted inside seL4 because this SDK expects 2 GiB. The runner was corrected to match the board definition; the successful run used 2 GiB. The native macOS test linker also needed the installed 15.4 SDK selected explicitly; see BUILD.md.
 
 These checks do not establish formal verification, production readiness, fault recovery, hardware support, cryptographic audit integrity, dynamic kernel-capability revocation, or security under concurrent in-flight operations. Independent bit-for-bit reproducibility and external review have not been established. Current remote validation is recorded per commit in [GitHub Actions](https://github.com/chasebryan/tcs/actions/workflows/check.yml).
+
+The terminal profile also uses the debug kernel: kernel debug output remains an alternate UART writer. Its device mapping boundary does not establish exclusive output ownership, authenticated input, or a trusted display path. Native mocked register tests are not physical-hardware evidence. See [terminal limits](TERMINAL.md).

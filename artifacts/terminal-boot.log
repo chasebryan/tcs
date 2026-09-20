@@ -1,0 +1,82 @@
+LDR|INFO: Setting all interrupts to Group 1
+LDR|INFO: GICv2 ITLinesNumber: 0x00000008
+LDR|INFO|CPU0: CurrentEL=EL2
+LDR|INFO|CPU0: Resetting CNTVOFF
+LDR|INFO: disabling MMU (if it was enabled)
+LDR|INFO: PSCI version is 1.1
+LDR|INFO: loader for seL4 starting
+LDR|INFO: flags:
+             seL4 configured as hypervisor
+LDR|INFO: kernel:      entry:   0x0000008060000000
+LDR|INFO: root server: physmem: 0x0000000060258000 -- 0x00000000602c5000
+LDR|INFO:              virtmem: 0x0000000000200000 -- 0x000000000026d000
+LDR|INFO:              entry  : 0x0000000000222fe8
+LDR|INFO: region: 0x00000000   addr: 0x0000000060000000   size: 0x0000000000258000   offset: 0x0000000000000000   type: 0x0000000000000001
+LDR|INFO: region: 0x00000001   addr: 0x0000000060258000   size: 0x000000000000b2b8   offset: 0x0000000000258000   type: 0x0000000000000001
+LDR|INFO: region: 0x00000002   addr: 0x00000000602732b8   size: 0x000000000001475c   offset: 0x00000000002632b8   type: 0x0000000000000001
+LDR|INFO: region: 0x00000003   addr: 0x0000000060297a18   size: 0x0000000000010088   offset: 0x0000000000277a14   type: 0x0000000000000001
+LDR|INFO: region: 0x00000004   addr: 0x00000000602a8000   size: 0x00000000000049b8   offset: 0x0000000000287a9c   type: 0x0000000000000001
+LDR|INFO: region: 0x00000005   addr: 0x00000000602ad000   size: 0x0000000000016000   offset: 0x000000000028c454   type: 0x0000000000000001
+LDR|INFO: region: 0x00000006   addr: 0x00000000602c4000   size: 0x00000000000001f8   offset: 0x00000000002a2454   type: 0x0000000000000001
+LDR|INFO: copying region 0x00000000
+LDR|INFO: copying region 0x00000001
+LDR|INFO: copying region 0x00000002
+LDR|INFO: copying region 0x00000003
+LDR|INFO: copying region 0x00000004
+LDR|INFO: copying region 0x00000005
+LDR|INFO: copying region 0x00000006
+LDR|INFO|CPU0: active CPUs to start: 0x00000001
+LDR|INFO|CPU0: enabling MMU
+LDR|INFO|CPU0: CurrentEL=EL2
+LDR|INFO|CPU0: Resetting CNTVOFF
+LDR|INFO|CPU0: enabling MMU
+LDR|INFO|CPU0: jumping to kernel
+Bootstrapping kernel
+Warning: Could not infer GIC interrupt target ID, assuming 0.
+Available phys memory regions: 1
+  [60000000..c0000000)
+Reserved virt address space regions: 2
+  [8060000000..8060258000)
+  [8060258000..80602c5000)
+Booting all finished, dropped to user space
+INFO  [sel4_capdl_initializer::initialize] Starting CapDL initializer
+INFO  [sel4_capdl_initializer::initialize] Starting threads
+MON|INFO: Microkit Monitor started!
+TCS audit ready (volatile, bounded)
+TCS policy ready
+TCS storage ready (read-only fixture)
+TCS client ready
+TCS TERMINAL READY (read-only, no echo)
+tcs> TCS 0.2-dev / read-only terminal
+tcs> help | version | status | read <generation>
+No administration commands.
+tcs> Self-status endpoint not implemented; no administrative route.
+tcs> TCS audit decision 1
+READ DENIED status=1
+tcs> TCS audit decision 2
+READ DENIED status=1
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR unknown or malformed command
+tcs> ERROR discarded input line
+tcs> TCS 0.2-dev / read-only terminal
+tcs> ERROR discarded input line
+tcs> TCS 0.2-dev / read-only terminal
+tcs> ERROR discarded input line
+tcs> TCS 0.2-dev / read-only terminal
+tcs> TCS 0.2-dev / read-only terminal
+tcs> CANCELLED
+tcs> TCS 0.2-dev / read-only terminal
+tcs> help | version | status | read <generation>
+No administration commands.
+tcs> help | version | status | read <generation>
+No administration commands.
+tcs> TCS audit decision 3
+READ DENIED status=1
+tcs> qemu-system-aarch64: terminating on signal 15 from pid 54353 (<unknown process>)

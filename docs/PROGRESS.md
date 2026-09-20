@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — isolated UART and working read-only terminal
+
+Implemented a separate six-domain boot profile with a PL011 driver, private bounded receive queue, transport-loss marker, partial writes, bounded IRQ/terminal handlers, and UART-driven command processing. The terminal has no policy-admin endpoint. `help` and `version` work; reads reach the real policy/audit chain and are denied by default. `status` reports its missing endpoint instead of fabricating live state. The seed's existing administrative test profile is preserved separately.
+
+Local evidence: sanitized policy/terminal/serial tests, 100,000 serial-buffer transitions, mocked driver IPC/register negative cases, 35 topology mutations across both profiles, optimized-Python checker regression, and scripted real QEMU UART cases. The script checks malformed/admin commands, integer boundaries, CRLF, editing, cancellation, line overflow, control bytes, denied reads, and recovery. Both development images and transcripts are saved under `artifacts/`; clean-machine evidence is tracked in GitHub Actions for each published commit.
+
+Limits: no input echo yet; debug-kernel output still shares the UART; no exclusive/trusted display path, authentication, administrator terminal, or physical-hardware support. Runtime input-loss injection is still a verification gate; native driver tests model it but do not establish real-device behavior. See [terminal contract](TERMINAL.md).
+
 ## 2026-09-20 — terminal foundation and explicit communication permissions
 
 Implemented:
@@ -19,6 +27,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Implement and test an isolated, bounded PL011 serial driver plus a separate read-only terminal boot profile. Keep the seed test console and its administrative authority out of this profile. Add scripted QEMU input tests that prove the actual UART-to-terminal path, invalid-input recovery, and absence of a policy-admin route.
+Introduce a narrow, channel-bound self-status endpoint and wire `status` to actual policy state. Test that it cannot choose another subject, mutate policy, expose admin authority, or leak stale session state. Then add input echo and runtime transport-loss injection tests, and a separate release-kernel terminal profile to remove the shared debug output route.
 
-After that: introduce a narrow self-status service contract, then design the separate administration/authentication boundary before making any control command interactive. Continue into lifecycle supervision only after those boundaries have executable tests.
+Design the separate administration/authentication boundary before making any control command interactive. Continue into lifecycle supervision only after those boundaries have executable tests.

@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Native policy tests
+      - name: Native policy, terminal, serial, and authority tests
         run: make test
       - name: Saved artifacts and source inputs
         run: make verify-artifacts
@@ -22,3 +22,7 @@ jobs:
         run: make smoke
       - name: Boot saved image
         run: make smoke-saved
+      - name: Build and exercise UART terminal
+        run: make terminal-smoke
+      - name: Boot saved terminal
+        run: make terminal-smoke-saved

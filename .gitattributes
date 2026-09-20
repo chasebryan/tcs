@@ -2,7 +2,7 @@
 *.crate binary
 *.tar.gz binary
 # Preserve the captured serial transcript byte-for-byte for its hash record.
-artifacts/boot.log -text whitespace=cr-at-eol
+artifacts/*boot.log -text whitespace=cr-at-eol
 # Upstream notices and manifest are preserved without whitespace edits.
 artifacts/upstream-licenses/* -whitespace
 third_party/microkit-manifest.xml -whitespace

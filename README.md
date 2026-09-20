@@ -6,9 +6,9 @@ Repository: [chasebryan/tcs](https://github.com/chasebryan/tcs). TCS replaces th
 
 **Current milestone: 0.1.0 Seed.** Boots seL4/Microkit in AArch64 QEMU and runs five native protection domains. The boot scenario exercises access grants, per-request checks, session revocation, quarantine, recovery, and audit exhaustion across actual kernel IPC.
 
-The console runs an automated scenario; it is not yet an interactive terminal. Storage serves one read-only fixture. Hardware drivers, persistent storage, signed updates, dynamic process creation, and a user login system come in later milestones. The typed capability design will extend the seed's versioned operation contracts; compile-time typed capability handles are not implemented yet.
+The seed console runs an automated scenario. A separate development profile now provides an interactive read-only terminal through an isolated PL011 serial server. Storage serves one read-only fixture. Persistent storage, signed updates, dynamic process creation, and a user login system come in later milestones. The typed capability design will extend the seed's versioned operation contracts; compile-time typed capability handles are not implemented yet.
 
-Development toward milestone 0.2 has begun: a host-tested, bounded [terminal input core](docs/TERMINAL.md) is available, and the seed's unused notification permissions are disabled. The parser is not yet connected to an interactive runtime. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and the next acceptance gate.
+Development toward milestone 0.2 includes a bounded [UART terminal](docs/TERMINAL.md), with no policy-admin channel and no command that grants authority. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and the next acceptance gate. Interactive administration and authentication are not implemented.
 
 ## Run
 
@@ -32,6 +32,8 @@ The same commands work on supported Linux x86_64/AArch64 and Apple Silicon hosts
 
 To boot the included image without downloading a compiler or SDK, install QEMU and run `make smoke-saved`. This is a standalone bootable seed, not yet a complete general-purpose OS or an offline toolchain distribution.
 
+For the new terminal, run `make terminal-smoke` for scripted real-UART tests or `make terminal-run` to use it. Commands: `help`, `version`, `status`, `read <generation>`. Input echo is not yet implemented; exit QEMU with **Ctrl-A, then X**. Reads are denied by default because this profile contains no administrator. `status` explicitly reports that its endpoint is not implemented. `make terminal-smoke-saved` tests the included terminal image without a compiler.
+
 ## First server graph
 
 ```mermaid
@@ -53,9 +55,11 @@ The dynamic behavior currently changes application authorization inside a fixed 
 | Path | Purpose |
 | --- | --- |
 | `system/tcs.system` | Five protection domains and their permitted communication paths |
+| `system/terminal.system` | Six-domain terminal profile; UART mapping/IRQ only in the serial server |
 | `servers/` | Freestanding native Microkit programs |
 | `lib/policy.c` | Allocation-free policy state machine shared by runtime and host tests |
-| `lib/terminal.c` | Bounded line editing and read-only command parsing; host-tested, not yet wired to runtime |
+| `lib/terminal.c` | Bounded line editing and read-only command parsing used in the runtime |
+| `lib/serial.c` | Bounded receive queue and explicit transport-loss handling |
 | `include/tcs/` | Policy types and versioned IPC definitions |
 | `tests/policy_test.c` | Invariants, negative cases, audit failure, counter exhaustion, transition sequences |
 | `tools/` | Pinned toolchain retrieval, topology check, automated QEMU boot |

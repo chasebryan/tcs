@@ -41,6 +41,10 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
 | `make smoke-saved` | Verify and boot `artifacts/loader.img`; no SDK/compiler needed |
+| `make terminal-image` | Build the separate six-domain UART terminal into `build/terminal.img` |
+| `make terminal-smoke` | Script actual UART commands and negative cases; save `build/terminal-boot.log` |
+| `make terminal-smoke-saved` | Verify and exercise `artifacts/terminal.img`; no SDK/compiler needed |
+| `make terminal-run` | Interactive no-echo terminal; Ctrl-A, then X exits QEMU |
 
 The smoke test waits at most 30 seconds for a verdict. The guest deliberately idles after the automated scenario; no login prompt is expected. The runner terminates only its own emulator process. Generated build files and compiler caches are confined to `build/` (or the specified `BUILD_DIR`).
 

@@ -39,6 +39,10 @@ def main():
     if (image.stat().st_size != record["image_bytes"] or
             actual["artifacts/loader.img"] != record["image_sha256"]):
         raise SystemExit("Image does not match build.json")
+    terminal = ROOT / "artifacts/terminal.img"
+    if (terminal.stat().st_size != record["terminal_image_bytes"] or
+            actual["artifacts/terminal.img"] != record["terminal_image_sha256"]):
+        raise SystemExit("Terminal image does not match build.json")
     print("PASS saved image, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
