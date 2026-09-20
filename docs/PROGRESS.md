@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — signed-administration and replay foundation
+
+Added exact 192-byte signed packets, real Ed25519 verification through pinned unmodified Monocypher 4.0.3, realm/boot binding, nonwrapping request sequences, one-pending-request admission, and definitive-completion handling. A separate policy-owner helper checks the signed expected generation immediately before candidate mutation, then uses existing audit commit semantics. None of this code is wired to a live admin endpoint or included in boot images yet.
+
+Sanitized host tests pass RFC vectors, 1,536 one-bit corruptions, exact lengths/encoding, unaligned input, correctly signed malformed commands, replay/context/key mismatch, pending/wrong receipts, exhausted sequences, stale generation, and audit-failure behavior. A test explicitly demonstrates that reusing a boot identity after resetting volatile state permits replay. Fresh trusted boot identity is therefore a required integration gate, not an implemented feature. All four new files compile for freestanding AArch64; 29 Python tests include exact dependency-source provenance checks. No real credential was created/imported. See [administration contract](ADMIN.md).
+
+All four existing image profiles rebuild byte-for-byte unchanged and pass their QEMU regression suites. The new native administration transcript is saved separately as `artifacts/admin-core-tests.log`; unchanged guest behavior is not evidence of a live authentication service.
+
 ## 2026-09-20 — observed release-kernel isolation faults
 
 Added a separate test-only release image with six child probes, a parent fault observer, and a dedicated policy-owned canary page. Actual QEMU faults reject ungranted UART addresses, unmapped policy-page reads/writes, writing through a read-only mapping, and fetching from a non-executable page. Kernel messages are checked for identity/order, shape, address, access type, and syndrome. The canary and the caller's live restricted policy metadata are checked before launch and after each fault. All six reports are required; silence is failure. The real terminal and serial-break suite runs afterward.
@@ -55,6 +63,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Define the separate administration/authentication protocol and its executable denial tests, including replay, stale sessions, subject binding, and malformed requests. Ordinary terminal input and serial-driver messages must never impersonate an authorized operator. Select and document the credential/provisioning boundary before wiring interactive mutations; no embedded test credential may authorize a deployed image.
+Implement the trusted boot/incarnation-freshness and public-key provisioning boundary, then add the separate admin server's private IPC adapter and policy-side conditional mutation/receipt protocol. Use the signed-request core only with an independently authorized generated key and a fresh boot identity; a static reusable test image cannot provide deployment replay safety. Ordinary terminal/driver messages must not impersonate that admin channel. Keep real credential provisioning operator-controlled and do not embed test credentials as deployment authority.
 
 Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.

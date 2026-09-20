@@ -20,6 +20,9 @@ TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial cl
 RELEASE_IMAGES := $(addprefix $(RELEASE_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 ISOLATION_DIR := $(BUILD_DIR)/isolation
 ISOLATION_PROBES := $(addprefix $(ISOLATION_DIR)/probe,$(addsuffix .elf,1 2 3 4 5 6))
+CRYPTO_DIR := third_party/monocypher
+CRYPTO_SOURCES := $(CRYPTO_DIR)/monocypher.c $(CRYPTO_DIR)/monocypher-ed25519.c
+CRYPTO_HEADERS := $(CRYPTO_DIR)/monocypher.h $(CRYPTO_DIR)/monocypher-ed25519.h
 HEADERS := $(wildcard include/tcs/*.h)
 HOST_FLAGS := -std=c11 -Wall -Wextra -Werror -pedantic -O1 -g -Iinclude
 TARGET_COMMON_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
@@ -33,6 +36,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: all test bootstrap image smoke smoke-saved verify-artifacts check-tools check-system terminal-image terminal-smoke terminal-run terminal-smoke-saved
 .PHONY: terminal-release-image terminal-release-smoke terminal-release-smoke-saved terminal-release-run
 .PHONY: isolation-image isolation-smoke isolation-smoke-saved
+.PHONY: admin-cross-check
 .SECONDARY:
 all: test
 
@@ -72,7 +76,10 @@ $(BUILD_DIR)/isolation_test: tests/isolation_test.c tests/isolation/cases.h | $(
 $(BUILD_DIR)/isolation_observer_test: tests/isolation_observer_test.c tests/isolation/observer.c tests/isolation/cases.h tests/support/microkit.h servers/terminal.c lib/terminal.c $(HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/terminal.c tests/isolation_observer_test.c -o "$@"
 
-test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test check-system
+$(BUILD_DIR)/admin_test: tests/admin_test.c lib/admin.c lib/admin_policy.c lib/policy.c include/tcs/admin.h include/tcs/policy.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/policy.c tests/admin_test.c -o "$@"
+
+test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
@@ -81,6 +88,7 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/terminal_server_test"
 	"$(BUILD_DIR)/isolation_test"
 	"$(BUILD_DIR)/isolation_observer_test"
+	"$(BUILD_DIR)/admin_test"
 	HOST_CC="$(HOST_CC)" $(PYTHON) -m unittest discover -s tests -p '*_test.py'
 
 check-system:
@@ -92,6 +100,18 @@ check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
 	@test "$$(tr -d '\r\n' < "$(MICROKIT_SDK)/VERSION")" = '2.3.0' || { echo 'TCS Seed requires Microkit 2.3.0'; exit 1; }
 	@test "$$("$(ZIG)" version)" = '0.14.1' || { echo 'TCS Seed requires Zig 0.14.1'; exit 1; }
+
+# Build the real verification core for the target, without granting a live RPC.
+$(RELEASE_DIR)/admin.o: lib/admin.c $(HEADERS) $(CRYPTO_HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -I$(CRYPTO_DIR) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/admin_policy.o: lib/admin_policy.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+$(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o: $(RELEASE_DIR)/%.o: $(CRYPTO_DIR)/%.c $(CRYPTO_HEADERS) Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -I$(CRYPTO_DIR) -c "$<" -o "$@"
+
+admin-cross-check: $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o
 
 $(BUILD_DIR)/%.o: servers/%.c $(HEADERS) Makefile | $(BUILD_DIR) check-tools
 	"$(ZIG)" cc $(TARGET_FLAGS) -c "$<" -o "$@"

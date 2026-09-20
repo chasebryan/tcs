@@ -2,6 +2,16 @@
   "format": 1,
   "sources": [
     {
+      "name": "monocypher",
+      "version": "4.0.3",
+      "file": "monocypher-4.0.3.tar.gz",
+      "url": "https://monocypher.org/download/monocypher-4.0.3.tar.gz",
+      "sha256": "8cc9bc341a66249016db9bd70e9142d8d0aef9945973744b1ac05dbc55d8ee66",
+      "publisher_sha512_url": "https://monocypher.org/download/monocypher-4.0.3.tar.gz.sha512",
+      "publisher_sha512": "40904ada5c7ee4f7741733e38b69a30a4b0561cbffba5ffe7c2dce16136d540251ec0d9056ff606510d3b5b708fb8a40db7e0870d4a0b2dc17ba2bfb880f8965",
+      "bytes": 940390
+    },
+    {
       "name": "microkit",
       "revision": "8780fab8699f5aeec109b21325ff37c741736b24",
       "file": "microkit-8780fab8699f5aeec109b21325ff37c741736b24.tar.gz",

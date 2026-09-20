@@ -5,6 +5,10 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Check | Observed result |
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
+| Signed administration core | Real Ed25519 RFC vectors; exact packet grammar; 1,536 one-bit corruptions; signed malformed requests; replay/realm/boot/key binding; pending completion and nonwrapping sequence tests under sanitizers |
+| Conditional admin policy | Host model checks generation at policy-owner evaluation, stale post-admission state, audit-denied grants, and audit-failed reductions; no IPC adapter yet |
+| Freshness limit | Test demonstrates replay after volatile-state reset with reused boot identity; trusted per-incarnation freshness remains an integration gate |
+| Crypto provenance/target | Unmodified Monocypher 4.0.3 files match the pinned, publisher-checksummed archive; administration/crypto files cross-compile for AArch64, but are not linked/executed in guest images |
 | Terminal input core | Read-only command allowlist; exact-span parsing; integer overflow; line overflow, control-byte rejection, and recovery under sanitizers |
 | Terminal byte sequences | 100,000 deterministic input bytes preserve bounded-buffer invariants; not a coverage-guided fuzzing claim |
 | Terminal echo | All 256 byte values classified; bounded generated feedback, tab/backspace/delete cells, CRLF/cancel, no raw rejected controls |

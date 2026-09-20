@@ -1,0 +1,6 @@
+PASS RFC 8032 Ed25519 vectors 1, 2, 3 and corrupted signatures
+PASS exact encoding/length, unaligned input, 1536 single-bit packet corruptions, zero error output
+PASS boot/realm/key binding, replay, pending receipt, reset rejection, sequence exhaustion
+PASS authenticated malformed commands and unconfigured state rejected
+PASS atomic policy generation precondition, definite receipts, audit failure, revoke/quarantine/restore
+TCS SIGNED ADMIN CORE TESTS PASS (host model; no live administration endpoint)

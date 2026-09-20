@@ -8,10 +8,13 @@ These unmodified source archives accompany the upstream components in `artifacts
 | Microkit | `8780fab8699f5aeec109b21325ff37c741736b24` (2.3.0) | Loader, monitor, runtime library, initialiser, system builder, board configurations |
 | rust-sel4 | `dbe6445d56059ed9a757e53c7137892aece1d179` | Initialiser/runtime dependencies |
 | Rust registry packages | Exact versions and checksums in `microkit-Cargo.lock` | Locked initialiser and SDK-tool dependency sources |
+| Monocypher | 4.0.3; SHA-256/SHA-512 in `sources.json` | Signed-administration verification core; not yet linked into boot images |
 
 Kernel and Microkit revisions come from the [2.3.0 release manifest](https://github.com/seL4/microkit-manifest/blob/2.3.0/default.xml), copied as `microkit-manifest.xml`. rust-sel4 and crate pins come from [Microkit's lockfile](https://github.com/seL4/microkit/blob/2.3.0/Cargo.lock), copied without changes as `microkit-Cargo.lock`.
 
 `sources.json` records every archive's upstream URL, revision/version, size, and SHA-256. Registry archives were checked against the upstream Cargo.lock checksums. GitHub source archives were fetched by full commit ID and their archive hashes recorded locally. `make verify-artifacts` checks the distributed copies against the saved record.
+
+The Monocypher archive was compared with the upstream published SHA-512. `monocypher/` contains exact, unmodified copies of its main source/header, optional Ed25519 source/header, and license. A native test compares these files with the pinned archive. The two source directories are flattened for includes; no source text is rewritten. This is checksum/provenance evidence, not an independent signature verification or cryptographic audit.
 
 ## Rebuilding the substrate
 

@@ -37,6 +37,7 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | --- | --- |
 | `make test` | Sanitized policy/terminal/serial and self-status IPC tests, deterministic transitions/input, strict graph/mutation checks, and offline bootstrap tests; no downloads |
 | `make bootstrap` | Download and extract pinned SDK/compiler |
+| `make admin-cross-check` | Compile signed-administration and pinned Ed25519 code for AArch64; no live endpoint/image |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
@@ -93,3 +94,5 @@ That path is an example, not a TCS dependency; it must exist on your host. Match
 The [GitHub Actions workflow](https://github.com/chasebryan/tcs/actions/workflows/check.yml) runs native tests, verifies saved evidence, bootstraps twice, builds on Ubuntu, and boots newly built and saved seed/debug-terminal/release-terminal/isolation-test images. Consult the run for the exact commit, not the existence of the workflow alone.
 
 The saved image and transcript are local development evidence, not signed releases or independent security attestations. After intentionally changing source, build and test a fresh image before updating `artifacts/` and running `python3 tools/verify_artifacts.py --record`. Never regenerate the record merely to hide an unexplained mismatch. Byte-for-byte independent reproducibility is not claimed.
+
+Signed-administration host tests run within `make test` using included, unmodified Monocypher 4.0.3 source; no additional download/package manager is needed. Keys in those tests are public RFC fixtures. No operator key file or environment credential is read. See [the protocol and deployment gates](ADMIN.md).

@@ -5,7 +5,7 @@
   "source_record": "manifest.json",
   "source_state": "standalone seed snapshot; source and artifact hashes recorded together",
   "milestone": "0.1.0-seed",
-  "development_increment": "observed-release-kernel-memory-and-device-isolation",
+  "development_increment": "signed-administration-core-and-replay-foundation",
   "date": "2026-09-20",
   "image": "loader.img",
   "image_bytes": 2796212,
@@ -30,6 +30,20 @@
     "production_ready": false
   },
   "microkit_sdk": "2.3.0",
+  "signed_admin_core": {
+    "packet_bytes": 192,
+    "signed_message_bytes": 128,
+    "algorithm": "Ed25519",
+    "verification_dependency": "unmodified Monocypher 4.0.3 with optional Ed25519 module",
+    "host_tests": "sanitized RFC 8032 vectors 1-3; 1536 single-bit mutations; exact encoding/length; context/key/replay/busy/completion/exhaustion and conditional policy/audit cases passed",
+    "cross_compilation": "four administration/crypto source files compiled for freestanding AArch64",
+    "linked_into_boot_images": false,
+    "guest_authentication_tested": false,
+    "fresh_boot_identity_implemented": false,
+    "operator_provisioning_implemented": false,
+    "real_credentials_created": false,
+    "reused_boot_identity_limitation_tested": true
+  },
   "isolation_test": {
     "image": "isolation.img",
     "image_bytes": 2772124,

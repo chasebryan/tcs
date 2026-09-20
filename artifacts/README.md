@@ -8,6 +8,8 @@
 
 `isolation.img` is **test-only**, with six faulting probe domains and a parent observer added to the release terminal graph. `isolation-boot.log` contains the six checked kernel-fault reports, protected-state verdict, and subsequent terminal tests; `isolation-report.txt` records the additional test authority. Run `make isolation-smoke-saved`. The [evidence scope](../docs/ISOLATION.md) is specific memory/device accesses, not arbitrary driver compromise or production fault recovery. Normal images do not contain these probes or observer capabilities.
 
+`admin-core-tests.log` records the sanitized native signed-request and policy tests. The administration and cryptographic sources also cross-compile for AArch64, but are not linked into any saved image. This log is **not guest-authentication evidence**; trusted boot freshness and key provisioning remain required before live administration. See [the administration contract](../docs/ADMIN.md).
+
 From the repository root, run the saved image without rebuilding:
 
 ```sh

@@ -8,6 +8,8 @@ Exact kernel, Microkit, rust-sel4, and locked Rust dependency source distributio
 
 [Zig 0.14.1](https://ziglang.org/download/0.14.1/release-notes.html) is used as a cross-compilation tool. [QEMU](https://www.qemu.org/) runs the boot test. Neither tool distribution is bundled with TCS source.
 
+The signed-administration core uses unmodified [Monocypher 4.0.3](https://monocypher.org/download/) source and its optional Ed25519/SHA-512 module, under its BSD-2-Clause license option. The complete source archive and publisher SHA-512 are recorded in `third_party/sources.json`; selected source files and original notices are in `third_party/monocypher/`. The core is host-tested and cross-compiled, but not linked into the current boot images. See [integration scope and known upstream limitation](docs/ADMIN.md).
+
 Primary technical references:
 
 - [Microkit overview](https://docs.sel4.systems/projects/microkit/)

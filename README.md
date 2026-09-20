@@ -38,6 +38,8 @@ The separate **release-kernel terminal** disables the SDK's kernel/runtime debug
 
 `make isolation-smoke` runs a separate [runtime isolation test image](docs/ISOLATION.md): six deliberate memory/device accesses must produce specific kernel faults while a policy-owned test page and live self-status remain intact. Normal images contain none of its probe/observer authority. `make isolation-smoke-saved` tests the included evidence image without an SDK.
 
+The next administration layer now has a [signed-request core](docs/ADMIN.md), with real Ed25519 verification, per-instance replay checks, and policy-generation preconditions. It is host-tested and target-compiled, **not yet a live login or administration endpoint**. Trusted boot freshness and operator provisioning remain mandatory integration gates.
+
 ## First server graph
 
 ```mermaid
