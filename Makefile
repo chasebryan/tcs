@@ -25,6 +25,8 @@ ISOLATION_PROBES := $(addprefix $(ISOLATION_DIR)/probe,$(addsuffix .elf,1 2 3 4 
 CRYPTO_DIR := third_party/monocypher
 CRYPTO_SOURCES := $(CRYPTO_DIR)/monocypher.c $(CRYPTO_DIR)/monocypher-ed25519.c
 CRYPTO_HEADERS := $(CRYPTO_DIR)/monocypher.h $(CRYPTO_DIR)/monocypher-ed25519.h
+HOST_CRYPTO_DIR := $(BUILD_DIR)/host-sanitized
+HOST_CRYPTO_OBJECTS := $(addprefix $(HOST_CRYPTO_DIR)/,monocypher.o monocypher-ed25519.o)
 HEADERS := $(wildcard include/tcs/*.h)
 HOST_FLAGS := -std=c11 -Wall -Wextra -Werror -pedantic -O1 -g -Iinclude
 TARGET_COMMON_FLAGS = -target aarch64-freestanding -mcpu=cortex_a53 -mstrict-align \
@@ -63,6 +65,14 @@ $(ISOLATION_DIR):
 $(OPERATOR_DIR) $(FIXTURE_DIR):
 	mkdir -p "$@"
 
+# Only native sanitizer tests share these mode-independent upstream objects.
+# Operator tooling and freestanding guests retain their separate compilation.
+$(HOST_CRYPTO_DIR):
+	mkdir -p "$@"
+
+$(HOST_CRYPTO_OBJECTS): $(HOST_CRYPTO_DIR)/%.o: $(CRYPTO_DIR)/%.c $(CRYPTO_HEADERS) Makefile | $(HOST_CRYPTO_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined -c "$<" -o "$@"
+
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/policy.c tests/policy_test.c -o "$@"
 
@@ -87,35 +97,35 @@ $(BUILD_DIR)/isolation_test: tests/isolation_test.c tests/isolation/cases.h | $(
 $(BUILD_DIR)/isolation_observer_test: tests/isolation_observer_test.c tests/isolation/observer.c tests/isolation/cases.h tests/support/microkit.h servers/terminal.c lib/terminal.c $(HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -Itests/support -fsanitize=address,undefined lib/terminal.c tests/isolation_observer_test.c -o "$@"
 
-$(BUILD_DIR)/admin_test: tests/admin_test.c lib/admin.c lib/admin_policy.c lib/policy.c include/tcs/admin.h include/tcs/policy.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/policy.c tests/admin_test.c -o "$@"
+$(BUILD_DIR)/admin_test: tests/admin_test.c lib/admin.c lib/admin_policy.c lib/policy.c include/tcs/admin.h include/tcs/policy.h $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/admin_policy.c lib/policy.c tests/admin_test.c -o "$@"
 
 $(BUILD_DIR)/boot_test: tests/boot_test.c lib/boot.c include/tcs/boot.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/boot.c tests/boot_test.c -o "$@"
 
-$(BUILD_DIR)/admin_ipc_test: tests/admin_ipc_test.c servers/admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c $(HEADERS) tests/support/microkit.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c tests/admin_ipc_test.c -o "$@"
+$(BUILD_DIR)/admin_ipc_test: tests/admin_ipc_test.c servers/admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c $(HEADERS) tests/support/microkit.h $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/boot.c tests/admin_ipc_test.c -o "$@"
 
 admin-ipc-test: $(BUILD_DIR)/admin_ipc_test
 	"$(BUILD_DIR)/admin_ipc_test"
 
-$(BUILD_DIR)/launch_admin_ipc_test: tests/admin_ipc_test.c servers/launch_admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c $(HEADERS) tests/support/microkit.h $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -DTCS_LAUNCH_IPC_TEST -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c tests/admin_ipc_test.c -o "$@"
+$(BUILD_DIR)/launch_admin_ipc_test: tests/admin_ipc_test.c servers/launch_admin.c servers/admin_policy.c lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c $(HEADERS) tests/support/microkit.h $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_LAUNCH_IPC_TEST -Itests/support -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/admin_policy.c lib/admin_receipt.c lib/policy.c lib/launch.c tests/admin_ipc_test.c -o "$@"
 
-$(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
+$(BUILD_DIR)/boot_fixture: tests/boot_fixture.c lib/admin.c lib/boot.c $(HEADERS) $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
 
-$(BUILD_DIR)/admin_fixture: tests/boot_fixture.c tests/admin/scenario.h lib/admin.c lib/boot.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -DTCS_ADMIN_SCENARIO -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
+$(BUILD_DIR)/admin_fixture: tests/boot_fixture.c tests/admin/scenario.h lib/admin.c lib/boot.c $(HEADERS) $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_ADMIN_SCENARIO -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/boot.c tests/boot_fixture.c -o "$@"
 
 $(BUILD_DIR)/tcs-operator: tools/operator.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tools/operator.c -o "$@"
 
-$(BUILD_DIR)/operator_fixture: tools/operator.c tests/operator_entropy.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -DTCS_OPERATOR_TEST_ONLY -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tools/operator.c tests/operator_entropy.c -o "$@"
+$(BUILD_DIR)/operator_fixture: tools/operator.c tests/operator_entropy.c lib/launch.c lib/admin.c $(HEADERS) $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_OPERATOR_TEST_ONLY -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/launch.c tools/operator.c tests/operator_entropy.c -o "$@"
 
-$(BUILD_DIR)/operator_verify: tests/operator_verify.c lib/launch.c lib/admin.c $(HEADERS) $(CRYPTO_SOURCES) $(CRYPTO_HEADERS) | $(BUILD_DIR)
-	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(CRYPTO_SOURCES) lib/admin.c lib/launch.c tests/operator_verify.c -o "$@"
+$(BUILD_DIR)/operator_verify: tests/operator_verify.c lib/launch.c lib/admin.c $(HEADERS) $(HOST_CRYPTO_OBJECTS) $(CRYPTO_HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -I$(CRYPTO_DIR) -fsanitize=address,undefined $(HOST_CRYPTO_OBJECTS) lib/admin.c lib/launch.c tests/operator_verify.c -o "$@"
 
 $(BUILD_DIR)/launch_test: tests/launch_test.c lib/launch.c include/tcs/launch.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/launch.c tests/launch_test.c -o "$@"

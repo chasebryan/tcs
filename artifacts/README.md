@@ -1,5 +1,7 @@
 # TCS boot artifacts
 
+`host-build-tests.log` records native sanitizer-object reuse and separation checks: one crypto object pair for seven instrumented consumers, no operator/guest reuse, parallel scheduling, and correct incremental invalidation. These are build checks, not cryptographic or runtime isolation proofs; all saved boot image bytes remain unchanged by this optimization.
+
 `loader.img` is the TCS debug image for QEMU AArch64. It contains the seL4 kernel, Microkit boot/runtime components, and five TCS servers. TCS source is in this repository; exact upstream source archives and notices are in [third_party/](../third_party/README.md) and `upstream-licenses/`.
 
 `terminal.img` is the six-domain read-only terminal **debug-kernel** image. `terminal-boot.log` records scripted actual-UART tests; `terminal-report.txt` records its capability allocation. Run `make terminal-smoke-saved` to exercise it without a compiler.

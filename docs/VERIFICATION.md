@@ -30,6 +30,7 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Release-kernel UART | Same commands, editing, status, denials, and three break/recovery cases pass with no boot preamble or debug diagnostics; no internal audit-counter observation in release |
 | Profile guards | Valid debug/release/host-fixture headers accepted; missing/conflicting/mismatched flags rejected; host fixture rejected for freestanding compilation |
 | Build profile routing | All six release ELFs link only release libraries; debug build remains separate; ambiguous CONFIG override rejected |
+| Native sanitizer reuse | Exactly two instrumented crypto objects shared by seven test/fixture programs; operator/guest exclusion, mode flags, parallel scheduling, repeat reuse, and source/header/recipe invalidation checked; real fresh parallel native build passes |
 | Harness profile checks | Split banners accepted; wrong profile and release preamble rejected; debug monitor faults rejected; audit output expected only for debug |
 | Release-kernel isolation | Six explicit VM faults: ungranted UART physical/alias access, unmapped policy test-page read/write, read-only write, NX fetch; exact identity/order/shape/address/access/syndrome checks |
 | Protected-state/liveness | Dedicated policy-owned canary and caller self-status checked before/after probes; complete UART and serial-break tests pass afterward; no general server-recovery claim |

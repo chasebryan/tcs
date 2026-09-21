@@ -1,0 +1,8 @@
+test_guest_targets_never_depend_on_host_objects (host_build_test.HostBuildTests.test_guest_targets_never_depend_on_host_objects) ... ok
+test_one_pair_shared_by_seven_sanitized_programs_only (host_build_test.HostBuildTests.test_one_pair_shared_by_seven_sanitized_programs_only) ... ok
+test_parallel_creation_reuse_and_dependency_invalidation (host_build_test.HostBuildTests.test_parallel_creation_reuse_and_dependency_invalidation) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.269s
+
+OK

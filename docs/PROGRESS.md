@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — shared native sanitizer objects, isolated build profiles
+
+Seven native tests/fixture helpers now reuse one separately compiled pair of sanitized Monocypher objects. Address/undefined-behavior instrumentation and strict warnings remain enabled for both dependency compilation and test linking. Operator tooling remains unsanitized and separately compiled; freestanding guest profiles cannot consume the host objects. Fixture-only macros stay on their application/test sources, and pinned upstream crypto files are unchanged.
+
+Three new build tests cover exact object reuse, all guest targets, mode separation, parallel scheduling, repeat-build reuse, and source/header/recipe invalidation. A fresh real four-job native build passes all native checks and 54 Python tests. All eight guest images rebuild byte-for-byte unchanged and pass their QEMU suites, including the twelve invalid launch configurations. Saved build-test evidence is `artifacts/host-build-tests.log`; actual clean-machine timing is available per commit in GitHub Actions, not assumed from fewer compile commands.
+
+This is build efficiency, not a runtime security change. Next work moves toward explicit lifecycle/containment models with incarnation and quiescence rules; no administrator restart shortcut or new credential is introduced.
+
 ## 2026-09-20 — fail-closed launch and uncertain-response regression coverage
 
 Added twelve actual interactive-guest launch failures: absent/short/long context, wrong header/mode, zero realm/boot/key, unknown fixture key, legacy test header, DMA-enabled firmware, and an operator-mode context carrying a public fixture key with its mode marker flipped. Each case submits twice and requires administrator NOT_READY, unchanged restricted live status, and denied reads. A banner alone is never a pass. These are explicit test-only direct launches, not new operator launcher options.
