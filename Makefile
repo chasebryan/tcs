@@ -21,6 +21,7 @@ IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,$(SERVERS)))
 TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 RELEASE_IMAGES := $(addprefix $(RELEASE_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 ISOLATION_DIR := $(BUILD_DIR)/isolation
+LIFECYCLE_DIR := $(BUILD_DIR)/lifecycle-test
 ISOLATION_PROBES := $(addprefix $(ISOLATION_DIR)/probe,$(addsuffix .elf,1 2 3 4 5 6))
 CRYPTO_DIR := third_party/monocypher
 CRYPTO_SOURCES := $(CRYPTO_DIR)/monocypher.c $(CRYPTO_DIR)/monocypher-ed25519.c
@@ -48,6 +49,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: interactive-image interactive-fixture-image
 .PHONY: interactive-smoke interactive-smoke-saved
 .PHONY: lifecycle-test lifecycle-cross-check
+.PHONY: lifecycle-image lifecycle-smoke lifecycle-smoke-saved
 .SECONDARY:
 all: test
 
@@ -61,6 +63,9 @@ $(RELEASE_DIR):
 	mkdir -p "$@"
 
 $(ISOLATION_DIR):
+	mkdir -p "$@"
+
+$(LIFECYCLE_DIR):
 	mkdir -p "$@"
 
 $(OPERATOR_DIR) $(FIXTURE_DIR):
@@ -79,6 +84,9 @@ $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h 
 
 $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe: $(BUILD_DIR)/%: tests/%.c lib/lifecycle.c include/tcs/lifecycle.h Makefile | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/lifecycle.c "$<" -o "$@"
+
+$(BUILD_DIR)/lifecycle_runtime_test: tests/lifecycle_runtime_test.c tests/lifecycle/supervisor.c tests/lifecycle/broker.c tests/lifecycle/controller.c tests/lifecycle/runtime.h tests/lifecycle/support/microkit.h lib/lifecycle.c lib/terminal.c $(HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -Itests/lifecycle/support -fsanitize=address,undefined lib/lifecycle.c lib/terminal.c tests/lifecycle_runtime_test.c -o "$@"
 
 lifecycle-test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe
 	"$(BUILD_DIR)/lifecycle_test"
@@ -154,11 +162,12 @@ operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operato
 	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'operator_test.py'
 
 test: $(BUILD_DIR)/launch_probe $(BUILD_DIR)/signed_input_test $(BUILD_DIR)/signed_terminal_test $(BUILD_DIR)/launch_admin_ipc_test
-test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe
+test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe $(BUILD_DIR)/lifecycle_runtime_test
 
 test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/lifecycle_test"
+	"$(BUILD_DIR)/lifecycle_runtime_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
@@ -182,6 +191,7 @@ check-system:
 	$(PYTHON) tools/check_system.py system/boot-test.system --profile boot-test
 	$(PYTHON) tools/check_system.py system/admin-test.system --profile admin-test
 	$(PYTHON) tools/check_system.py system/interactive.system --profile interactive
+	$(PYTHON) tools/check_system.py system/lifecycle-test.system --profile lifecycle-test
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -205,6 +215,35 @@ $(RELEASE_DIR)/lifecycle_model.o: lib/lifecycle.c include/tcs/lifecycle.h Makefi
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
 
 lifecycle-cross-check: $(RELEASE_DIR)/lifecycle_model.o
+
+$(addprefix $(LIFECYCLE_DIR)/,controller.o supervisor.o broker.o): $(LIFECYCLE_DIR)/%.o: tests/lifecycle/%.c tests/lifecycle/runtime.h $(HEADERS) Makefile | $(LIFECYCLE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -c "$<" -o "$@"
+
+$(LIFECYCLE_DIR)/worker_a.o: tests/lifecycle/worker.c tests/lifecycle/runtime.h $(HEADERS) Makefile | $(LIFECYCLE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -DLT_WORKER=1 -c "$<" -o "$@"
+
+$(LIFECYCLE_DIR)/worker_b.o: tests/lifecycle/worker.c tests/lifecycle/runtime.h $(HEADERS) Makefile | $(LIFECYCLE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -DLT_WORKER=2 -c "$<" -o "$@"
+
+$(LIFECYCLE_DIR)/controller.elf: $(LIFECYCLE_DIR)/controller.o $(RELEASE_DIR)/terminal_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(LIFECYCLE_DIR)/supervisor.elf: $(LIFECYCLE_DIR)/supervisor.o $(RELEASE_DIR)/lifecycle_model.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(addprefix $(LIFECYCLE_DIR)/,worker_a.elf worker_b.elf broker.elf): $(LIFECYCLE_DIR)/%.elf: $(LIFECYCLE_DIR)/%.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(LIFECYCLE_DIR)/lifecycle-test.img: $(addprefix $(LIFECYCLE_DIR)/,controller.elf supervisor.elf broker.elf worker_a.elf worker_b.elf) $(RELEASE_DIR)/serial.elf system/lifecycle-test.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/lifecycle-test.system --search-path "$(LIFECYCLE_DIR)" "$(RELEASE_DIR)" --board $(BOARD) --config release -o "$@" -r "$(LIFECYCLE_DIR)/report.txt"
+
+lifecycle-image: $(LIFECYCLE_DIR)/lifecycle-test.img
+
+lifecycle-smoke: lifecycle-image
+	$(PYTHON) tools/lifecycle_boot_test.py --qemu "$(QEMU)" --image "$(LIFECYCLE_DIR)/lifecycle-test.img" --log "$(LIFECYCLE_DIR)/boot.log"
+
+lifecycle-smoke-saved: verify-artifacts
+	$(PYTHON) tools/lifecycle_boot_test.py --qemu "$(QEMU)" --image artifacts/lifecycle-test.img --log "$(BUILD_DIR)/saved-lifecycle-boot.log"
 
 $(RELEASE_DIR)/boot_probe.o: tests/boot/probe.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"

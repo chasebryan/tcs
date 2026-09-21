@@ -1,0 +1,24 @@
+PASS real native supervisor/broker adapters: gate linearization, stop before drain, kernel-channel identity, stale work, no supervisor RPC
+PASS nonreturning kernel failures and malformed post-commit replies never certify stop, clear uncertainty, or enable replacement
+PASS exact child fault identity/shape/address/syndrome; duplicate, unknown and unused-child faults disable supervisor
+PASS exact control/bridge shapes, unknown channels, slot bounds and worker inability to select control authority
+PASS test controller: cancellation/loss/unknown commands have no effects; partial echo completes before fixture control
+TCS LIFECYCLE RUNTIME ADAPTER TESTS PASS (mocked kernel, actual adapters)
+test_exact_unsigned_record_shape (lifecycle_harness_test.LifecycleHarnessTests.test_exact_unsigned_record_shape) ... ok
+test_valid_and_every_metadata_word_mutation (lifecycle_harness_test.LifecycleHarnessTests.test_valid_and_every_metadata_word_mutation) ... ok
+test_wait_does_not_hide_fault_or_authority_errors (lifecycle_harness_test.LifecycleHarnessTests.test_wait_does_not_hide_fault_or_authority_errors) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK
+test_build_is_separate_and_supervisor_has_only_model_dependency (lifecycle_system_test.LifecycleSystemTests.test_build_is_separate_and_supervisor_has_only_model_dependency) ... ok
+test_every_element_attribute_and_extra_authority (lifecycle_system_test.LifecycleSystemTests.test_every_element_attribute_and_extra_authority) ... ok
+test_exact_profile_and_normal_exclusion (lifecycle_system_test.LifecycleSystemTests.test_exact_profile_and_normal_exclusion) ... ok
+test_explicit_fixture_and_hosted_guards (lifecycle_system_test.LifecycleSystemTests.test_explicit_fixture_and_hosted_guards) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.262s
+
+OK
+PASS lifecycle authority graph: 338 element/attribute mutations rejected

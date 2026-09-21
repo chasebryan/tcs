@@ -78,7 +78,7 @@ Use a fresh build directory when changing SDK/compiler paths or versions; Make d
 
 ## Kernel profile separation
 
-`make lifecycle-test` runs the experimental lifecycle model's native sanitizer and bounded differential tests. `make lifecycle-cross-check` compiles it for freestanding AArch64. Neither command grants runtime authority; no guest target links this object. See [model scope and integration gates](LIFECYCLE.md).
+`make lifecycle-test` runs the experimental lifecycle model's native sanitizer and bounded differential tests. `make lifecycle-cross-check` compiles it for freestanding AArch64. Only the separate `make lifecycle-image` target links this model, into a test-only supervisor. `make lifecycle-smoke` exercises that guest; `make lifecycle-smoke-saved` runs its included image without an SDK. All pre-existing targets exclude the model. See [model scope](LIFECYCLE.md) and [runtime fixture limits](LIFECYCLE-RUNTIME.md).
 
 Native cryptography tests compile the two pinned Monocypher sources once into `$(BUILD_DIR)/host-sanitized`, with address/undefined-behavior sanitizers and existing warning flags. Seven native test/fixture programs share those objects and retain sanitizer flags when linking. Mode-specific fixture definitions remain on their own test/tool sources. The unsanitized `tcs-operator` build and all freestanding guest objects compile separately and never consume this host cache. No upstream crypto source or sanitizer coverage is removed.
 

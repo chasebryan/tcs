@@ -1,6 +1,7 @@
 """Validate every authority-bearing field of the seed system description."""
 import argparse
 import xml.etree.ElementTree as ET
+from check_lifecycle_system import validate_lifecycle_test
 
 DOMAINS = {"console": 10, "client": 20, "storage": 30, "policy": 40, "audit": 50}
 EDGES = {
@@ -75,7 +76,10 @@ def isolation_base(root):
 
 
 def validate(path, profile="seed"):
-    require(profile in {"seed", "terminal", "isolation", "boot-test", "admin-test", "interactive"}, "unknown system profile")
+    require(profile in {"seed", "terminal", "isolation", "boot-test", "admin-test", "interactive", "lifecycle-test"}, "unknown system profile")
+    if profile == "lifecycle-test":
+        validate_lifecycle_test(ET.parse(path).getroot())
+        return
     if profile == "boot-test":
         validate_boot_test(ET.parse(path).getroot())
         return
@@ -210,7 +214,7 @@ def admin_test_base(root, interactive=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path")
-    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test", "admin-test", "interactive"), default="seed")
+    parser.add_argument("--profile", choices=("seed", "terminal", "isolation", "boot-test", "admin-test", "interactive", "lifecycle-test"), default="seed")
     args = parser.parse_args()
     try:
         validate(args.path, args.profile)

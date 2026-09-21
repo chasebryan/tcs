@@ -1,6 +1,8 @@
 # TCS boot artifacts
 
-`lifecycle-model-tests.log` records the experimental native lifecycle model: boundary tests and 79,232 reference comparisons over 185 bounded states. It is not guest recovery, kernel-stop, resource-quiescence, or formal-verification evidence. No saved image links the model; see [the exact scope](../docs/LIFECYCLE.md).
+`lifecycle-test.img` is a separate six-domain release-kernel experiment. `lifecycle-boot.log` records a progressing noncooperating worker becoming stable after stop, separate broker drain, a distinct replacement, stale-incarnation refusal, a checked kernel fault, and permanent retirement. `lifecycle-runtime-tests.log` records native adapter/graph/harness tests; `lifecycle-report.txt` records construction. Run `make lifecycle-smoke-saved` without an SDK. Approval/audit are fixtures, and no memory/capability reclamation or general recovery is implemented. See [the exact evidence boundary](../docs/LIFECYCLE-RUNTIME.md).
+
+`lifecycle-model-tests.log` records the experimental native lifecycle model: boundary tests and 79,232 reference comparisons over 185 bounded states. That native log is not guest recovery, kernel-stop, resource-quiescence, or formal-verification evidence. Only the separate lifecycle test image links the model; see [the exact scope](../docs/LIFECYCLE.md).
 
 `host-build-tests.log` records native sanitizer-object reuse and separation checks: one crypto object pair for seven instrumented consumers, no operator/guest reuse, parallel scheduling, and correct incremental invalidation. These are build checks, not cryptographic or runtime isolation proofs; all saved boot image bytes remain unchanged by this optimization.
 

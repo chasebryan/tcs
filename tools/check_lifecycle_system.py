@@ -1,0 +1,49 @@
+"""Exact allowlist for the separate lifecycle runtime experiment."""
+import xml.etree.ElementTree as ET
+
+EXPECTED = '''<system>
+    <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+    <memory_region name="counter_a" size="0x1000" />
+    <memory_region name="counter_b" size="0x1000" />
+    <protection_domain name="controller" priority="10" budget="10000" period="10000">
+        <program_image path="controller.elf" />
+        <map mr="counter_a" vaddr="0x6000000" perms="r" cached="true" setvar_vaddr="counter_a_vaddr" />
+        <map mr="counter_b" vaddr="0x6001000" perms="r" cached="true" setvar_vaddr="counter_b_vaddr" />
+    </protection_domain>
+    <protection_domain name="supervisor" priority="50" budget="10000" period="10000">
+        <program_image path="supervisor.elf" />
+        <protection_domain name="worker_a" priority="20" budget="1000" period="10000" id="1">
+            <program_image path="worker_a.elf" />
+            <map mr="counter_a" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="counter_vaddr" />
+        </protection_domain>
+        <protection_domain name="worker_b" priority="19" budget="1000" period="10000" id="2">
+            <program_image path="worker_b.elf" />
+            <map mr="counter_b" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="counter_vaddr" />
+        </protection_domain>
+    </protection_domain>
+    <protection_domain name="broker" priority="40" budget="1000" period="10000">
+        <program_image path="broker.elf" />
+    </protection_domain>
+    <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+    </protection_domain>
+    <channel><end pd="controller" id="0" pp="true" notify="false" /><end pd="serial" id="1" notify="true" /></channel>
+    <channel><end pd="controller" id="1" pp="true" notify="false" /><end pd="supervisor" id="0" notify="false" /></channel>
+    <channel><end pd="controller" id="2" pp="true" notify="false" /><end pd="broker" id="2" notify="false" /></channel>
+    <channel><end pd="worker_a" id="0" pp="true" notify="false" /><end pd="broker" id="0" notify="true" /></channel>
+    <channel><end pd="worker_b" id="0" pp="true" notify="false" /><end pd="broker" id="1" notify="true" /></channel>
+    <channel><end pd="broker" id="3" pp="true" notify="false" /><end pd="supervisor" id="1" notify="false" /></channel>
+</system>'''
+
+
+def shape(element):
+    return (element.tag, element.attrib, (element.text or "").strip(),
+            (element.tail or "").strip(), [shape(e) for e in element])
+
+
+def validate_lifecycle_test(root):
+    if shape(root) != shape(ET.fromstring(EXPECTED)):
+        raise ValueError("unexpected lifecycle-test authority or structure")
+    print("PASS exact lifecycle-test child TCBs, counters, bounded budgets and one-way calls")

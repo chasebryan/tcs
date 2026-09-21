@@ -1,4 +1,4 @@
-# TCS seed verification — 2026-09-20
+# TCS seed verification — 2026-09-21
 
 Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_virt_aarch64/debug` (seed/terminal) and `qemu_virt_aarch64/release` (separate terminal), Zig 0.14.1; emulator: QEMU 11.1.1 using TCG.
 
@@ -6,7 +6,10 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
 | Experimental lifecycle model | Sanitized C matches separate reference over 185 bounded states and 79,232 events; separate stop/drain evidence, stale work, unknown actors, startup/confirmation failures, finite pool and nonwrapping counters; not a runtime supervisor or formal proof |
-| Lifecycle build boundary | Freestanding AArch64 object compiles; all eight guest build plans exclude it and all eight rebuilt image bytes are unchanged |
+| Lifecycle build boundary | Only the separate ninth test image links the model; eight pre-existing build plans exclude it and their rebuilt image bytes are unchanged |
+| Runtime lifecycle fixture | Actual TCB stop of progressing noncooperating worker; five stable-counter samples before broker drain; distinct replacement, two stale-incarnation refusals, malformed identity refusal, exact kernel fault and finite retirement |
+| Lifecycle adapter failures | Sanitized actual adapters with mocked transport: nonreturning kernel errors, malformed post-commit replies, no supervisor RPC, stop-before-drain, late completion, unknown shapes/roles, fault corruption/duplicate and controller loss/partial echo |
+| Lifecycle authority/evidence | Exact separate graph rejects 338 element/attribute mutations; explicit test-profile guards; host parser rejects contradictory fault/metadata and retries only allowed startup snapshots |
 | Host operator workflow | Public-fixture CLI tests: independent review-digest/wire checks; actual Ed25519 admission; approval/context/key mismatch; exact numbers; private modes, links, FIFO, ACL, and repository rejection; exclusive concurrent signing; partial-write/sync/entropy failures |
 | Public launch codec | Sanitized exact lengths, 256 header corruptions, zero error outputs, mode separation, and three RFC fixture exclusions; not arbitrary-key validity or freshness proof |
 | One-shot launcher | Exclusive public reservation before exec, four concurrent launchers with one winner, failed exec/write/fsync remains consumed, private image copy and no extra inherited descriptors; actual macOS emulator boot, not power-loss/privileged-rollback protection |

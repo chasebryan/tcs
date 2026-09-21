@@ -50,3 +50,7 @@ jobs:
         run: make interactive-smoke
       - name: Saved signed interactive profiles
         run: make interactive-smoke-saved
+      - name: Separate lifecycle supervisor experiment
+        run: make lifecycle-smoke
+      - name: Saved lifecycle supervisor experiment
+        run: make lifecycle-smoke-saved

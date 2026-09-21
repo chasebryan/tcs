@@ -76,7 +76,14 @@ def main():
                 path.stat().st_size != profile["image_bytes"] or
                 actual["artifacts/" + path.name] != profile["image_sha256"]):
             raise SystemExit("Interactive image does not match build.json: " + name)
-    print("PASS eight saved images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    lifecycle = ROOT / "artifacts/lifecycle-test.img"
+    profile = record["lifecycle_runtime_test"]
+    if (profile["config"] != "release" or profile["test_only"] is not True or
+            profile["production_ready"] is not False or
+            lifecycle.stat().st_size != profile["image_bytes"] or
+            actual["artifacts/lifecycle-test.img"] != profile["image_sha256"]):
+        raise SystemExit("Lifecycle test image does not match build.json")
+    print("PASS nine saved images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

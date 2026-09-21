@@ -4,6 +4,16 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-21 — separate runtime supervisor and ticket-drain experiment
+
+Added a six-domain release-kernel test profile with an independent supervisor, broker, two one-use workers, UART controller and existing serial driver. The supervisor owns the lifecycle gate and makes no outgoing protected call. Broker admissions/completions check that owner and bind worker identity to kernel channels. The supervisor records stop only after actual TCB suspension returns; broker drain waits for stop and discards its private pending ticket. All approval/audit decisions are explicit fixtures; no policy server or operator credential is involved.
+
+Actual QEMU shows a noncooperating worker counter progressing, then stable across five observations after stop. A distinct second worker rejects two stale-incarnation requests and a malformed identity request, then produces a specifically checked kernel fault. Both workers retire without reuse, and attempts to select consumed slots fail. The native adapter tests cover kernel-operation failures, malformed post-commit replies, control/worker separation, fault corruption, input cancellation/loss and partial output. All native checks and 64 Python tests pass; graph tests reject 338 mutations. The eight pre-existing images remain byte-identical and pass their QEMU suites; the new ninth image is saved separately.
+
+One full regression attempt hit UART input loss during an existing signed-packet test. The guest discarded the incomplete frame; an isolated rerun passed with unchanged image bytes. No transport protection was disabled. Native fault-test development also corrected a positive test syndrome from same-EL to lower-EL data abort, and the evidence checker now retries only explicitly allowed startup snapshots, never contradictory fault evidence.
+
+See [runtime contract and limits](LIFECYCLE-RUNTIME.md). This is observed kernel stop plus ticket-only quiescence, not general reclamation, authenticated lifecycle administration, persistent recovery or a deadline proof. The UART controller can still block/fail with a hung broker/serial service; an independent surviving management path is a next gate. Milestone 0.3 remains incomplete. No ordinary terminal/admin authority or image bytes changed.
+
 ## 2026-09-20 — bounded one-use worker lifecycle model
 
 Added an allocation-free, single-owner lifecycle model for two distinct pre-created worker slots. Selection and activation require separate audited administration; containment closes an additional work gate without waiting on audit. Replacement waits for independently correlated supervisor stop and broker drain confirmations. Old-incarnation completions and repeated receipts cannot revive a closing/retired worker, and retired slots are never reused. Unknown/worker identities have no transition authority; a detector is reduction-only. The model does not grant resource rights or modify signed administrator replay state.

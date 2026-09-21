@@ -1,8 +1,10 @@
 # Experimental worker-lifecycle model
 
-Status: native model and freestanding cross-compilation only. No guest links this
-code. It does not stop a server, revoke a kernel capability, reclaim memory, or
-complete roadmap milestone 0.3. Existing boot images and signed administrator
+Status: experimental model with native tests, now used by one separate
+[test-only runtime supervisor](LIFECYCLE-RUNTIME.md). The model itself performs
+no kernel operations; the runtime adapter supplies the narrow stop/drain
+evidence described there. No resource reclamation or completion of roadmap
+milestone 0.3 is claimed. The eight pre-existing images and signed administrator
 state are unchanged.
 
 The model in `lib/lifecycle.c` explores a deliberately small replacement scheme:
@@ -106,11 +108,14 @@ confirmation orders, duplicate receipts, permanent pool exhaustion, and refusal
 to replace a worker when stop confirmation is absent. The synthetic counter
 states are structurally valid but not all reachable from two fresh slots.
 `make lifecycle-cross-check` compiles an AArch64 object without linking a guest.
-Build-plan tests exclude lifecycle objects/sources from all eight guest targets.
+Build-plan tests exclude lifecycle objects/sources from all eight pre-existing
+guest targets. Only the new, separately checked lifecycle experiment links it.
 
 ## Required runtime gates
 
-Before attaching this model to kernel effects, implement and test:
+Runtime integration requirements follow. The separate experiment implements a
+narrow subset (single gate owner, synchronous stop ordering, ticket-only drain)
+without generalizing its evidence to a production resource owner:
 
 - A separate test-only supervisor profile with its own scheduling context,
   bounded handlers, exact authority-graph checks, and no blocking worker RPC.
