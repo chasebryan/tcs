@@ -194,16 +194,58 @@ def cross_launch_and_operator_refusal(args, root, old_packet, old_context):
     print("PASS cross-launch signature refusal; operator guest refuses fixture provisioning; no actual operator credential", flush=True)
 
 
-def uart_breaks(args, root):
-    # Explicit test-only direct launcher: adds a private QMP socket, never used
-    # by the operator CLI. No networking/disk or credential is added.
-    identity, session = prepare(args, root, "breaks")
+def direct_command(args, image, context, *, dma=False, qmp=None):
+    """Test-only invalid-provisioning/fault launcher, not an operator CLI bypass."""
     command = [args.qemu, "-machine","virt,virtualization=on","-cpu","cortex-a53","-m","2G","-smp","1",
         "-display","none","-no-reboot","-chardev","stdio,id=uart,signal=off","-serial","chardev:uart",
-        "-monitor","none","-nic","none","-accel","tcg","-global","fw_cfg_mem.dma_enabled=off",
-        "-device",f"loader,file={args.image},addr=0x70000000,cpu-num=0",
-        "-fw_cfg",f"name=opt/tcs/launch-context,file={session / 'launch.context'}",
-        "-qmp",f"unix:{root / 'qmp'},server=on,wait=off"]
+        "-monitor","none","-nic","none","-accel","tcg","-global",f"fw_cfg_mem.dma_enabled={'on' if dma else 'off'}",
+        "-device",f"loader,file={image},addr=0x70000000,cpu-num=0,force-raw=on"]
+    if context is not None:
+        command += ["-fw_cfg", f"name=opt/tcs/launch-context,file={context}"]
+    if qmp is not None:
+        command += ["-qmp", f"unix:{qmp},server=on,wait=off"]
+    return command
+
+
+def refusal_cases(context):
+    """Name, malformed public bytes (or absent), DMA enabled, operator image."""
+    return [("missing", None, False, False), ("short", context[:-1], False, False),
+        ("long", context + b"X", False, False), ("header", b"X" + context[1:], False, False),
+        ("mode", context[:15] + b"\0" + context[16:], False, False),
+        ("zero-realm", context[:16] + bytes(32) + context[48:], False, False),
+        ("zero-boot", context[:48] + bytes(32) + context[80:], False, False),
+        ("zero-key", context[:80] + bytes(32), False, False),
+        ("unknown-fixture-key", context[:80] + bytes([context[80] ^ 1]) + context[81:], False, False),
+        ("legacy-test-header", b"TCS-BOOT\1\1" + bytes(6) + context[16:], False, False),
+        ("dma", context, True, False),
+        ("operator-fixture-mode-flip", context[:15] + b"\0" + context[16:], False, True)]
+
+
+def launch_refusals(args, root):
+    identity, session = prepare(args, root, "refusals")
+    context = (session / "launch.context").read_bytes()
+    packet = signed(args, identity, session, "grant", 1, 0)
+    for name, data, dma, is_operator in refusal_cases(context):
+        path = root / (name + ".context") if data is not None else None
+        if path is not None:
+            path.write_bytes(data)  # Public deliberately malformed test data only.
+        guest = Guest(direct_command(args, args.operator_image if is_operator else args.image, path, dma=dma),
+                      "refused-launch-" + name, args.log)
+        try:
+            ready(guest, "experimental-operator" if is_operator else "PUBLIC-FIXTURE-ONLY")
+            for _ in range(2):
+                guest.submit(packet, b"ADMIN REJECTED status=1\n")
+                status(guest, "restricted", 0)
+                guest.line("read 1", b"READ DENIED status=1\n")
+        finally:
+            guest.close()
+    print("PASS 12 invalid launch cases: administration stays NOT_READY; live status restricted; reads denied", flush=True)
+
+
+def uart_breaks(args, root):
+    # This private test-control socket is never exposed by the operator CLI.
+    identity, session = prepare(args, root, "breaks")
+    command = direct_command(args, args.image, session / "launch.context", qmp=root / "qmp")
     guest = Guest(command, "signed-UART-breaks-test-only", args.log); control = None
     try:
         ready(guest); control = Qmp(root / "qmp")
@@ -244,6 +286,7 @@ def main():
         root = Path(directory).resolve()
         packet, context = lifecycle(args, root)
         cross_launch_and_operator_refusal(args, root, packet, context)
+        launch_refusals(args, root)
         uart_breaks(args, root)
 
 

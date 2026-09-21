@@ -1,6 +1,6 @@
 # Signed administration IPC and execution receipts
 
-Status: implemented and exercised in a **separate test-only release image**. This is not operator provisioning, an interactive administration UI, or production authorization. It uses public RFC fixtures and the explicitly test-only boot context. Ordinary seed/terminal/isolation/boot-probe images retain their prior roles and graphs.
+Status: this document describes the **scripted test-only release image**, using public RFC fixtures and its original test boot context. Its conditional-policy and receipt adapters are also shared with the separately selected [signed interactive profile](OPERATOR.md), whose bootstrap/context and terminal differ. Neither profile establishes production authorization or successful real-credential provisioning. Ordinary seed/terminal/isolation/boot-probe images retain their prior roles and graphs.
 
 ## Server boundary
 
@@ -8,7 +8,7 @@ The eight-domain test profile adds an administrator at priority 25 and a test bo
 
 `servers/admin.c` initializes once from a private boot-provider call and refuses requests if initialization failed. It currently accepts only the test boot format. Each exact 192-byte packet is copied from message registers into private storage before signature verification or nested calls. Key and actor are not input fields. Valid admission consumes its sequence before forwarding; one pending request is allowed. Signature success does not imply policy execution.
 
-`servers/admin_policy.c` replaces the legacy policy adapter only in this profile. Channel 0 accepts the new exact conditional-mutation contract, **not legacy four-word grant/revoke calls**. It independently requires the next sequence and never wraps. It consumes a valid execution sequence even when generation is stale or audit denies the mutation. Wrong sequence/shape does not execute or reset anything. Channel 1 retains ordinary checks and fixed-subject status, never administration authority.
+`servers/admin_policy.c` replaces the legacy policy adapter in this profile and the separately selected signed interactive profile. Channel 0 accepts the new exact conditional-mutation contract, **not legacy four-word grant/revoke calls**. It independently requires the next sequence and never wraps. It consumes a valid execution sequence even when generation is stale or audit denies the mutation. Wrong sequence/shape does not execute or reset anything. Channel 1 retains ordinary checks and fixed-subject status, never administration authority.
 
 ## Experimental wire contract
 
@@ -39,4 +39,4 @@ Administrator requires an exact receipt shape, echoed command identity, legal fl
 
 The native corrupt-receipt/failure tests are not real crashed-service recovery tests. Synchronous calls can still block if policy/audit hangs. Kernel channel ownership authenticates the policy peer within the trusted graph; receipts are not cryptographically signed for a remote host, encrypted, durable, or proof against a compromised policy server. The existing volatile audit record lacks the new request sequence/expected-generation fields and does not substitute for this execution receipt.
 
-Test fixtures must never become deployment trust roots. A real operator-selected key/realm, trusted context discovery, explicit host signing workflow, interactive transport, and a restart/incarnation contract remain necessary. Snapshot restoration or verifier-only restart is unsupported; the [boot-context limitations](BOOT-CONTEXT.md) still apply. No real credential has been generated or imported. The terminal here remains read-only after the scripted test, even though its test wrapper has a signed-submission endpoint.
+Test fixtures must never become deployment trust roots. The [host signing workflow, one-shot launch, and interactive transport](OPERATOR.md) are implemented separately as an experimental option. Independently authorized real keys/realms, protected credentials, trusted context discovery, and a restart/incarnation contract remain deployment gates. Snapshot restoration or verifier-only restart is unsupported; the [boot-context limitations](BOOT-CONTEXT.md) still apply. No real credential has been generated or imported. The terminal here remains read-only after the scripted test, even though its test wrapper has a signed-submission endpoint.

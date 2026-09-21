@@ -14,10 +14,29 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from check_system import validate
-from interactive_boot_test import consume, receipt
+from interactive_boot_test import consume, receipt, direct_command, refusal_cases
+from types import SimpleNamespace
 
 
 class InteractiveTests(unittest.TestCase):
+    def test_negative_launch_plan_is_explicit_and_bounded(self):
+        context = bytes(range(112))
+        cases = refusal_cases(context)
+        self.assertEqual(len(cases), 12)
+        self.assertEqual(len({case[0] for case in cases}), 12)
+        args = SimpleNamespace(qemu="/qemu")
+        for name, data, dma, is_operator in cases:
+            self.assertLessEqual(len(data or b""), 113)
+            command = direct_command(args, "/image", None if data is None else "/context", dma=dma)
+            self.assertEqual(command[:5], ["/qemu", "-machine", "virt,virtualization=on", "-cpu", "cortex-a53"])
+            self.assertNotIn("-qmp", command)
+            self.assertIn("none", command)
+            self.assertEqual("-fw_cfg" in command, data is not None)
+            self.assertEqual("fw_cfg_mem.dma_enabled=on" in command, name == "dma")
+            self.assertEqual(is_operator, name == "operator-fixture-mode-flip")
+        controlled = direct_command(args, "/image", "/context", qmp="/private/qmp")
+        self.assertEqual(controlled[-2:], ["-qmp", "unix:/private/qmp,server=on,wait=off"])
+
     def test_exact_graph_and_mutations(self):
         source = ROOT / "system/interactive.system"
         original = ET.parse(source).getroot()

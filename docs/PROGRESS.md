@@ -4,6 +4,16 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — fail-closed launch and uncertain-response regression coverage
+
+Added twelve actual interactive-guest launch failures: absent/short/long context, wrong header/mode, zero realm/boot/key, unknown fixture key, legacy test header, DMA-enabled firmware, and an operator-mode context carrying a public fixture key with its mode marker flipped. Each case submits twice and requires administrator NOT_READY, unchanged restricted live status, and denied reads. A banner alone is never a pass. These are explicit test-only direct launches, not new operator launcher options.
+
+Both native administrator adapters now reject 64 wrong bootstrap word counts, seven wrong labels, every single-bit corruption of the 16-byte header, and zero public fields without policy/audit execution. Recalling initialization with a changed context cannot replace the live identity or reset replay state. This is a mocked-adapter initialization test, not safe crashed-server restart evidence.
+
+The signed terminal tests now exercise every defined admission status, representative invalid values, 64 wrong reply counts, six wrong labels, and corruption of all 13 receipt words. Uncertain completion never appears as rejection; malformed replies never appear as valid execution receipts. A separate blocked-echo/loss schedule verifies whole-frame discard, no submission, and ordinary status recovery. All native tests and 51 Python groups pass, along with the expanded actual UART suite. Runtime sources and all eight boot image bytes are unchanged; saved evidence and documentation are updated. GitHub Actions records clean-machine checks for the published commit.
+
+Next: make the expensive native sanitizer build reuse mode-specific dependency objects, then investigate bounded lifecycle/containment models. No real credential, restart bypass, authenticated host receipt, new device authority, or production readiness is introduced.
+
 ## 2026-09-20 — one-shot launch and signed interactive UART
 
 Connected the host workflow to a separate eight-domain release guest. An exclusive session reservation is written before launching; failed execution and competing launches cannot normally reuse it. Public context and image copies remain in the private session directory; no private seed or extra file descriptor reaches QEMU. Bootstrap alone reads the firmware context and supplies it to administrator over private IPC. Terminal submits exact signed packets, never plaintext administration or direct policy calls.

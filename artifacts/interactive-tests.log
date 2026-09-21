@@ -1,6 +1,9 @@
 PASS exact signed frames: all lengths through 386, 256 byte classes, cancellation/loss at every position, CRLF and one-shot completion
 PASS signed terminal adapter: partial TX/echo ordering, exact packet IPC, correlated/malformed replies, loss/cancel, CRLF, maximum receipt fields, plaintext denial
+PASS terminal response matrix: all admission statuses, 64 wrong counts, six wrong labels, all 13 corrupted receipt words; uncertainty never called rejection
+PASS signed packet loss while echo is blocked: no submission, full-frame discard, ordinary status recovery
 PASS exact admin/policy channels, wire shapes, no legacy admin endpoint, boot failure
+PASS bootstrap adapter: 64 wrong counts, seven wrong labels, 128 header mutations, zero fields; reinit cannot replace context or reset replay state
 PASS correlated receipts, nested-MR clobber, stale post-auth state, audit failures and authority reductions
 PASS corrupted receipts leave committed requests pending; no untrusted completion or duplicate policy execution
 PASS independent admin/policy sequence exhaustion and saturated generation receipts

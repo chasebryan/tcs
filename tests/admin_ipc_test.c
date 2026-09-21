@@ -34,7 +34,9 @@ static uint8_t context[112] = {'T','C','S','-','B','O','O','T',1,1}, secret[64];
 #endif
 static unsigned current, executions, audits, audit_failure;
 static int corrupt_word = -1;
-static bool corrupt_shape, interleave, bad_boot;
+static bool corrupt_shape, interleave;
+static unsigned boot_words;
+static uint64_t boot_label;
 static struct tcs_admin_command grant = {1, 0, {TCS_GRANT, 1, TCS_OBJECT, TCS_READ, 0}};
 
 static microkit_msginfo test_ppcall(microkit_channel channel, microkit_msginfo message)
@@ -42,7 +44,7 @@ static microkit_msginfo test_ppcall(microkit_channel channel, microkit_msginfo m
     if (current == 0 && channel == 1) {
         assert(message.label == BOOT_REQUEST && message.count == 0);
         tcs_words_from_bytes(context, sizeof context);
-        return microkit_msginfo_new(BOOT_REPLY, bad_boot ? 13 : 14);
+        return microkit_msginfo_new(boot_label, boot_words);
     }
     if (current == 0) {
         assert(channel == 2 && message.label == TCS_ADMIN_EXECUTE && message.count == 6);
@@ -75,7 +77,8 @@ static void reset(void)
     administrator = (struct tcs_admin){0}; policy_live = (struct tcs_policy){0};
     policy_ready = execution_exhausted = false; execution_sequence = 1;
     current = executions = audits = audit_failure = 0;
-    corrupt_word = -1; corrupt_shape = interleave = bad_boot = false;
+    corrupt_word = -1; corrupt_shape = interleave = false;
+    boot_words = 14; boot_label = BOOT_REPLY;
     policy_server_init(); admin_server_init(); assert(administrator.initialized);
 }
 static microkit_msginfo submit(struct tcs_admin_command c)
@@ -116,9 +119,51 @@ static void malformed(void)
     bad = grant; bad.sequence = 2; tcs_execution_words(bad);
     assert(tcs_response(policy_server_handler(0, microkit_msginfo_new(TCS_ADMIN_EXECUTE, 6))).status == TCS_STALE);
     assert(audits == 0 && execution_sequence == 1);
-    administrator = (struct tcs_admin){0}; bad_boot = true; admin_server_init();
+    administrator = (struct tcs_admin){0}; boot_words = 13; admin_server_init();
     admission(submit(grant), TCS_ADMIN_NOT_READY); assert(executions == 0);
     puts("PASS exact admin/policy channels, wire shapes, no legacy admin endpoint, boot failure");
+}
+static void boot_failures(void)
+{
+    reset();
+    for (unsigned words = 0; words <= 64; ++words) {
+        if (words == 14) continue;
+        administrator = (struct tcs_admin){0}; boot_words = words;
+        admin_server_init(); assert(!administrator.initialized);
+        admission(submit(grant), TCS_ADMIN_NOT_READY);
+    }
+    boot_words = 14;
+    const uint64_t wrong_labels[] = {0, TCS_REPLY, TCS_ADMIN_SUBMIT, TCS_ADMIN_RECEIPT, BOOT_REQUEST, BOOT_REPLY ^ 1, UINT64_MAX};
+    for (unsigned i = 0; i < sizeof wrong_labels / sizeof *wrong_labels; ++i) {
+        administrator = (struct tcs_admin){0}; boot_label = wrong_labels[i];
+        admin_server_init(); assert(!administrator.initialized);
+        admission(submit(grant), TCS_ADMIN_NOT_READY);
+    }
+    boot_label = BOOT_REPLY;
+    uint8_t saved[112]; memcpy(saved, context, sizeof saved);
+    for (unsigned bit = 0; bit < 128; ++bit) {
+        administrator = (struct tcs_admin){0}; context[bit/8] ^= (uint8_t)(1u << (bit%8));
+        admin_server_init(); assert(!administrator.initialized);
+        memcpy(context, saved, sizeof context);
+        admission(submit(grant), TCS_ADMIN_NOT_READY);
+    }
+    for (unsigned offset = 16; offset <= 80; offset += 32) {
+        administrator = (struct tcs_admin){0}; memset(context + offset, 0, 32);
+        admin_server_init(); assert(!administrator.initialized);
+        memcpy(context, saved, sizeof context);
+        admission(submit(grant), TCS_ADMIN_NOT_READY);
+    }
+    assert(executions == 0 && audits == 0 && execution_sequence == 1);
+    reset(); (void)receipt(grant);
+    struct tcs_admin original = administrator;
+    context[48] ^= 1; admin_server_init(); memcpy(context, saved, sizeof context);
+    assert(administrator.initialized && administrator.next_sequence == original.next_sequence &&
+        administrator.pending_sequence == original.pending_sequence &&
+        !memcmp(administrator.public_key, original.public_key, 32) &&
+        !memcmp(administrator.realm, original.realm, 32) && !memcmp(administrator.boot, original.boot, 32));
+    admission(submit(grant), TCS_ADMIN_REPLAY);
+    assert(executions == 1 && audits == 1);
+    puts("PASS bootstrap adapter: 64 wrong counts, seven wrong labels, 128 header mutations, zero fields; reinit cannot replace context or reset replay state");
 }
 static void transitions(void)
 {
@@ -220,7 +265,7 @@ int main(void)
         0x44,0x49,0xc5,0x69,0x7b,0x32,0x69,0x19,0x70,0x3b,0xac,0x03,0x1c,0xae,0x7f,0x60};
     context[16] = 0x54; context[48] = 0x42;
     crypto_ed25519_key_pair(secret, context + 80, seed);
-    malformed(); transitions(); uncertain_completion(); limits(); receipt_matrix();
+    malformed(); boot_failures(); transitions(); uncertain_completion(); limits(); receipt_matrix();
     crypto_wipe(secret, sizeof secret);
     puts("TCS ADMIN IPC TESTS PASS (real adapters, mocked kernel/audit transport)");
 #ifdef TCS_LAUNCH_IPC_TEST

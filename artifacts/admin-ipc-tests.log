@@ -1,4 +1,5 @@
 PASS exact admin/policy channels, wire shapes, no legacy admin endpoint, boot failure
+PASS bootstrap adapter: 64 wrong counts, seven wrong labels, 128 header mutations, zero fields; reinit cannot replace context or reset replay state
 PASS correlated receipts, nested-MR clobber, stale post-auth state, audit failures and authority reductions
 PASS corrupted receipts leave committed requests pending; no untrusted completion or duplicate policy execution
 PASS independent admin/policy sequence exhaustion and saturated generation receipts
