@@ -10,6 +10,8 @@ The seed console runs an automated scenario. A separate development profile now 
 
 Development toward milestone 0.2 includes a bounded [read-only UART terminal](docs/TERMINAL.md) and a separately selected [signed interactive profile](docs/OPERATOR.md). The latter submits exact signed requests through an isolated administrator; terminal never gets a direct policy-admin channel. Positive authentication tests use public fixtures only. Follow [development checkpoints](docs/PROGRESS.md) for completed increments and remaining provisioning/recovery gates.
 
+An experimental [worker-lifecycle model](docs/LIFECYCLE.md) now tests one-use replacement, separate stop/drain confirmations, and stale-work rejection. It is native-tested and cross-compiled only: no guest uses it, and no server restart or resource reclamation is claimed. Run `make lifecycle-test` for its bounded reference-model checks.
+
 ## Run
 
 Host tests require a C11 compiler, Make, and Python 3.9+:

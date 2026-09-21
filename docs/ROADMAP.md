@@ -14,6 +14,8 @@ Milestones are acceptance gates, not calendar promises.
 
 ## Decisions to resolve during lifecycle work
 
+The [experimental lifecycle model](LIFECYCLE.md) begins this investigation with two one-use worker slots and separately correlated stop/drain evidence. It is not linked into a guest and does not satisfy milestone 0.3's runtime acceptance gate.
+
 Microkit's fixed topology is suitable for Seed. Prototype a bounded pool of pre-created worker domains and separately evaluate a direct seL4 resource manager for arbitrary process creation. Select between them using memory overhead, recovery latency, revocation completeness, and proof burden. Do not pretend a thin portability interface makes their security semantics interchangeable.
 
 ## Userspace and interface direction

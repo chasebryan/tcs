@@ -1,0 +1,14 @@
+PASS lifecycle replacement: separate audited activation, two confirmation orders, pending work, stale results, finite one-use pool
+PASS containment during start: delayed start rejected, failed/missing stop never treated as completion
+PASS nonwrapping incarnation/request exhaustion; authority reduction remains possible
+PASS unknown/worker identities, malformed events and inconsistent state fail closed without mutation
+TCS LIFECYCLE MODEL TESTS PASS (no guest supervisor or kernel effects)
+test_bounded_reachable_states_and_adversarial_events (lifecycle_model_test.LifecycleModelTests.test_bounded_reachable_states_and_adversarial_events) ... ok
+test_counter_boundaries (lifecycle_model_test.LifecycleModelTests.test_counter_boundaries) ... ok
+test_no_lifecycle_code_in_guest_builds (lifecycle_model_test.LifecycleModelTests.test_no_lifecycle_code_in_guest_builds) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.838s
+
+OK
+PASS lifecycle reference exploration: 185 states, 79232 event comparisons; two slots, issued <= 2

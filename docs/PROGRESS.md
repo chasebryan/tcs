@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-20 — bounded one-use worker lifecycle model
+
+Added an allocation-free, single-owner lifecycle model for two distinct pre-created worker slots. Selection and activation require separate audited administration; containment closes an additional work gate without waiting on audit. Replacement waits for independently correlated supervisor stop and broker drain confirmations. Old-incarnation completions and repeated receipts cannot revive a closing/retired worker, and retired slots are never reused. Unknown/worker identities have no transition authority; a detector is reduction-only. The model does not grant resource rights or modify signed administrator replay state.
+
+Sanitized native tests and a separate Python reference model pass 79,232 event comparisons across 185 bounded reachable states, plus malformed-state, startup-failure, pending-work, missing-confirmation, pool-exhaustion and counter-boundary cases. All native checks and 57 Python tests pass. The model cross-compiles for AArch64 but is excluded from all eight guest builds; all eight images rebuild byte-for-byte unchanged and pass QEMU regressions. Evidence is saved in `artifacts/lifecycle-model-tests.log`.
+
+This begins lifecycle design; it does not complete milestone 0.3 or implement a supervisor. [The contract](LIFECYCLE.md) distinguishes model results from actual kernel/resource evidence and documents late-resume ordering, trusted endpoint identity, mailbox synchronization, deadline/budget and quiescence gates. Next: a separate test-only runtime supervisor/worker experiment after those adapter contracts are made concrete. No in-place restart, memory/capability reclamation, credential, hardware or new guest authority is introduced.
+
 ## 2026-09-20 — shared native sanitizer objects, isolated build profiles
 
 Seven native tests/fixture helpers now reuse one separately compiled pair of sanitized Monocypher objects. Address/undefined-behavior instrumentation and strict warnings remain enabled for both dependency compilation and test linking. Operator tooling remains unsanitized and separately compiled; freestanding guest profiles cannot consume the host objects. Fixture-only macros stay on their application/test sources, and pinned upstream crypto files are unchanged.

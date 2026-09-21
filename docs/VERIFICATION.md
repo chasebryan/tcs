@@ -5,6 +5,8 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Check | Observed result |
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
+| Experimental lifecycle model | Sanitized C matches separate reference over 185 bounded states and 79,232 events; separate stop/drain evidence, stale work, unknown actors, startup/confirmation failures, finite pool and nonwrapping counters; not a runtime supervisor or formal proof |
+| Lifecycle build boundary | Freestanding AArch64 object compiles; all eight guest build plans exclude it and all eight rebuilt image bytes are unchanged |
 | Host operator workflow | Public-fixture CLI tests: independent review-digest/wire checks; actual Ed25519 admission; approval/context/key mismatch; exact numbers; private modes, links, FIFO, ACL, and repository rejection; exclusive concurrent signing; partial-write/sync/entropy failures |
 | Public launch codec | Sanitized exact lengths, 256 header corruptions, zero error outputs, mode separation, and three RFC fixture exclusions; not arbitrary-key validity or freshness proof |
 | One-shot launcher | Exclusive public reservation before exec, four concurrent launchers with one winner, failed exec/write/fsync remains consumed, private image copy and no extra inherited descriptors; actual macOS emulator boot, not power-loss/privileged-rollback protection |

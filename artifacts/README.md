@@ -1,5 +1,7 @@
 # TCS boot artifacts
 
+`lifecycle-model-tests.log` records the experimental native lifecycle model: boundary tests and 79,232 reference comparisons over 185 bounded states. It is not guest recovery, kernel-stop, resource-quiescence, or formal-verification evidence. No saved image links the model; see [the exact scope](../docs/LIFECYCLE.md).
+
 `host-build-tests.log` records native sanitizer-object reuse and separation checks: one crypto object pair for seven instrumented consumers, no operator/guest reuse, parallel scheduling, and correct incremental invalidation. These are build checks, not cryptographic or runtime isolation proofs; all saved boot image bytes remain unchanged by this optimization.
 
 `loader.img` is the TCS debug image for QEMU AArch64. It contains the seL4 kernel, Microkit boot/runtime components, and five TCS servers. TCS source is in this repository; exact upstream source archives and notices are in [third_party/](../third_party/README.md) and `upstream-licenses/`.

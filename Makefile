@@ -47,6 +47,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: operator-tools operator-test
 .PHONY: interactive-image interactive-fixture-image
 .PHONY: interactive-smoke interactive-smoke-saved
+.PHONY: lifecycle-test lifecycle-cross-check
 .SECONDARY:
 all: test
 
@@ -75,6 +76,13 @@ $(HOST_CRYPTO_OBJECTS): $(HOST_CRYPTO_DIR)/%.o: $(CRYPTO_DIR)/%.c $(CRYPTO_HEADE
 
 $(BUILD_DIR)/policy_test: lib/policy.c tests/policy_test.c include/tcs/policy.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/policy.c tests/policy_test.c -o "$@"
+
+$(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe: $(BUILD_DIR)/%: tests/%.c lib/lifecycle.c include/tcs/lifecycle.h Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/lifecycle.c "$<" -o "$@"
+
+lifecycle-test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe
+	"$(BUILD_DIR)/lifecycle_test"
+	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'lifecycle_model_test.py'
 
 $(BUILD_DIR)/terminal_test: lib/terminal.c tests/terminal_test.c include/tcs/terminal.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/terminal.c tests/terminal_test.c -o "$@"
@@ -146,9 +154,11 @@ operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operato
 	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'operator_test.py'
 
 test: $(BUILD_DIR)/launch_probe $(BUILD_DIR)/signed_input_test $(BUILD_DIR)/signed_terminal_test $(BUILD_DIR)/launch_admin_ipc_test
+test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe
 
 test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
+	"$(BUILD_DIR)/lifecycle_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
@@ -189,6 +199,12 @@ $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o: $(RELEASE_DIR)/
 	"$(ZIG)" cc $(RELEASE_FLAGS) -I$(CRYPTO_DIR) -c "$<" -o "$@"
 
 admin-cross-check: $(RELEASE_DIR)/admin.o $(RELEASE_DIR)/admin_policy.o $(RELEASE_DIR)/monocypher.o $(RELEASE_DIR)/monocypher-ed25519.o $(RELEASE_DIR)/launch_core.o
+
+# Compile the model for AArch64, but do not link it into any guest image.
+$(RELEASE_DIR)/lifecycle_model.o: lib/lifecycle.c include/tcs/lifecycle.h Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+lifecycle-cross-check: $(RELEASE_DIR)/lifecycle_model.o
 
 $(RELEASE_DIR)/boot_probe.o: tests/boot/probe.c $(HEADERS) Makefile | $(RELEASE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
