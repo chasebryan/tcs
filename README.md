@@ -14,6 +14,8 @@ An experimental [worker-lifecycle model](docs/LIFECYCLE.md) tests one-use replac
 
 ## Run
 
+A native-only [reduction latch](docs/REDUCTION.md) now tests sticky containment requests, including requests arriving before worker selection. It preserves separate stop/drain requirements and cannot grant authority. Run `make reduction-test`. It is not yet wired into any guest or evidence of a management path surviving a hung broker.
+
 Host tests require a C11 compiler, Make, and Python 3.9+:
 
 ```sh

@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-21 — native-only sticky reduction latch
+
+Added a private single-owner wrapper around the existing lifecycle model and a separate one-word C11 atomic mailbox. Observed containment bits remain set for each one-use slot, including requests before selection. Every wrapped event polls first; rejected or unauthorized events cannot roll back independently observed reductions. Malformed words inhibit both slots without discarding pending work or inventing physical stop/drain evidence. No code is linked into a guest, and no new authority or credential is introduced.
+
+Sanitized native tests cover startup/activation ordering, stale/forged/missing confirmations, malformed input, private-state corruption, counter boundaries, coalesced requests, hostile clearing after observation and late publication. Two host publisher threads perform 100,000 atomic publications while the owner samples 100,000 times. A separate reduction reference composed with the existing lifecycle reference matches 566,504 actions across 365 bounded states. All native checks and 67 Python tests pass; the new object cross-compiles for AArch64. All nine images rebuild byte-for-byte unchanged and pass their actual QEMU regression suites.
+
+See [the exact reduction contract](REDUCTION.md) and `artifacts/reduction-tests.log`. Publication is not an acknowledgement of observation or containment: a post-sample request can race an earlier-sampled transition, and a hostile withdrawn request can go unobserved. Native C11 threads do not establish cross-domain memory ordering, notification delivery, scheduling or deadlines. The independent runtime management path and actual hung-broker injection are still next; milestones 0.3/0.4 remain incomplete. The stale bottom-of-file next-step text has been updated to reflect the already completed signed UART experiment.
+
 ## 2026-09-21 — separate runtime supervisor and ticket-drain experiment
 
 Added a six-domain release-kernel test profile with an independent supervisor, broker, two one-use workers, UART controller and existing serial driver. The supervisor owns the lifecycle gate and makes no outgoing protected call. Broker admissions/completions check that owner and bind worker identity to kernel channels. The supervisor records stop only after actual TCB suspension returns; broker drain waits for stop and discards its private pending ticket. All approval/audit decisions are explicit fixtures; no policy server or operator credential is involved.
@@ -135,6 +143,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Connect the experimental host workflow to a trusted one-shot launcher and an explicitly selected guest provisioning profile, then add bounded signed-request input without exposing legacy policy authority. Preparing a fresh context is not yet enforcing one-launch use; the new context format is deliberately not accepted by existing test guests. Keep context discovery on the trusted host side and real credential creation operator-controlled. Preserve no-retry behavior for uncertain receipts. Resolve verifier restarts before lifecycle recovery; reused contexts/snapshots remain unsafe.
+Build a separate test-only reduction producer/supervisor path independent of the existing UART controller and broker. Start from the native reduction latch, preserve its observation boundary, and inject a genuinely hung broker. Require independent kernel-stop evidence and refusal of replacement without actual broker/resource drain. No production integration or deadline claim precedes those tests.
 
-Continue toward authenticated interactive administration and then lifecycle supervision. Retain the distinction between specific probe-fault evidence and containment/recovery of a compromised real service.
+The one-shot signed UART workflow above is already implemented experimentally, so it is no longer the next increment. Its real provisioning, verifier restart, durable replay and authenticated-receipt gates remain open. Keep credentials operator-controlled, uncertain requests unretried, and all existing images/authority graphs unchanged during the new experiment.

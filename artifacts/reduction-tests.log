@@ -1,0 +1,10 @@
+"build/reduction_test"
+PASS reduction latch: pre-selection inhibit, observation-before-admission, sticky fault, no fabricated stop/drain
+PASS reduction mailbox: 100000 atomic publications, 100000 samples; publication is not containment acknowledgement
+TCS_TEST_BUILD_DIR="/Users/chasebryan/Documents/Codex/2026-09-20/referenced-chatgpt-conversation-this-is-an/outputs/TCS/build" python3 -m unittest discover -s tests -p 'reduction_model_test.py'
+...
+----------------------------------------------------------------------
+Ran 3 tests in 16.772s
+
+OK
+PASS reduction reference exploration: 365 states, 566504 event comparisons; issued <= 1

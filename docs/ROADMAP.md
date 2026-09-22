@@ -14,6 +14,8 @@ Milestones are acceptance gates, not calendar promises.
 
 ## Decisions to resolve during lifecycle work
 
+The native-only [reduction latch](REDUCTION.md) starts the independent-control investigation: observed requests are permanent for a one-use slot, including before selection, and never replace stop/drain evidence. It is not connected to the runtime fixture. An independently runnable producer/supervisor and actual hung-broker tests remain the next runtime gates; published requests are not containment acknowledgements.
+
 The [experimental lifecycle model](LIFECYCLE.md) begins this investigation with two one-use worker slots and separately correlated stop/drain evidence. A [test-only runtime experiment](LIFECYCLE-RUNTIME.md) now exercises a noncooperating worker, actual child stop, ticket drain, distinct replacement and kernel-fault containment. Retired resources remain allocated; authenticated control, generalized quiescence and reclamation are absent, so milestone 0.3 is not complete.
 
 Microkit's fixed topology is suitable for Seed. Prototype a bounded pool of pre-created worker domains and separately evaluate a direct seL4 resource manager for arbitrary process creation. Select between them using memory overhead, recovery latency, revocation completeness, and proof burden. Do not pretend a thin portability interface makes their security semantics interchangeable.

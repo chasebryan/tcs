@@ -49,6 +49,8 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make admin-test-smoke` | Build/run separate signed administration IPC test profile with public fixtures |
 | `make admin-test-smoke-saved` | Run saved administration test image; native C fixture compiler required, no SDK required |
 | `make admin-cross-check` | Compile signed-administration, public launch-context codec, and pinned Ed25519 code for AArch64; no new endpoint/image |
+| `make reduction-test` | Native sanitized sticky-reduction model, atomic-publication tests and bounded reference comparison; no guest |
+| `make reduction-cross-check` | Compile native-only reduction latch for AArch64; excluded from all nine guest images |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
@@ -77,6 +79,8 @@ make smoke BUILD_DIR=build-custom MICROKIT_SDK=/path/to/microkit-sdk-2.3.0 \
 Use a fresh build directory when changing SDK/compiler paths or versions; Make does not fingerprint tool executables. This milestone checks the exact SDK/compiler version but does not rebuild the SDK itself. See [upstream source](../third_party/README.md) for kernel/runtime source and upstream rebuild instructions.
 
 ## Kernel profile separation
+
+The [reduction latch](REDUCTION.md) is native-only. Its tests use POSIX threads and lock-free C11 64-bit atomics on the supported 64-bit hosts; cross-compilation creates a separate object and grants no runtime authority. Build tests check exclusion from all nine guest targets.
 
 `make lifecycle-test` runs the experimental lifecycle model's native sanitizer and bounded differential tests. `make lifecycle-cross-check` compiles it for freestanding AArch64. Only the separate `make lifecycle-image` target links this model, into a test-only supervisor. `make lifecycle-smoke` exercises that guest; `make lifecycle-smoke-saved` runs its included image without an SDK. All pre-existing targets exclude the model. See [model scope](LIFECYCLE.md) and [runtime fixture limits](LIFECYCLE-RUNTIME.md).
 

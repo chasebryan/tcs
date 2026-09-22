@@ -5,6 +5,9 @@ Observed locally on an Apple Silicon macOS host. Build: Microkit 2.3.0, `qemu_vi
 | Check | Observed result |
 | --- | --- |
 | Native policy tests | Pass under address and undefined-behavior sanitizers |
+| Native-only reduction latch | 365 bounded states and 566,504 reference actions; preselection inhibit, sticky malformed-input failure, no rollback of reductions on rejected events, retained pending work and separate confirmations |
+| Atomic request publication | Two host threads publish 100,000 times; single owner samples 100,000 times; observed bits cannot clear; explicit late-publication test demonstrates publication is not containment acknowledgement; no cross-domain or race-detector claim |
+| Reduction build boundary | Separate AArch64 compilation and exclusion from all nine guest build plans; all nine rebuild byte-for-byte unchanged and pass QEMU regressions; no runtime management path or deadline implemented |
 | Experimental lifecycle model | Sanitized C matches separate reference over 185 bounded states and 79,232 events; separate stop/drain evidence, stale work, unknown actors, startup/confirmation failures, finite pool and nonwrapping counters; not a runtime supervisor or formal proof |
 | Lifecycle build boundary | Only the separate ninth test image links the model; eight pre-existing build plans exclude it and their rebuilt image bytes are unchanged |
 | Runtime lifecycle fixture | Actual TCB stop of progressing noncooperating worker; five stable-counter samples before broker drain; distinct replacement, two stale-incarnation refusals, malformed identity refusal, exact kernel fault and finite retirement |

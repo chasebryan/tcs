@@ -20,6 +20,8 @@ jobs:
         run: make admin-cross-check
       - name: Cross-compile experimental lifecycle model
         run: make lifecycle-cross-check
+      - name: Cross-compile native-only reduction latch
+        run: make reduction-cross-check
       - name: Emulator
         run: sudo apt-get update && sudo apt-get install -y qemu-system-arm
       - name: Build and boot
