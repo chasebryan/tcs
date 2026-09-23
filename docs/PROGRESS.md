@@ -4,6 +4,14 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-23 — native-only nonrenewable lifetime deadlines
+
+Added a private single-owner deadline wrapper around the reduction/lifecycle model. Successful audited reservation commits a checked, nonrenewable lifetime before startup; activation and worker traffic cannot extend it. Every event observes trusted time and reduction requests first, including rejected events. Equality expires a slot; failed or regressing clock observations permanently inhibit both slots. Pending tickets survive, and only the existing separately correlated stop/drain evidence can retire them. No guest, timer/device access, authority graph or credential changes.
+
+Sanitized native tests cover all live phases, late startup, denied renewal, overflow/wrap, clock failure, malformed requests, invalid private state, missing/forged/stale confirmations, both confirmation orders and 200,000 repeated observations. A separately implemented timing reference matches 201,254 actions over 2,141 bounded states, with additional fresh-read/event and 64-bit boundary matrices. Full native checks and 77 Python tests pass, including all graph/parser/policy regressions. The separate AArch64 object compiles, compiler static analysis reports no diagnostics, and build-plan tests exclude it from all ten guests. All ten images rebuild byte-for-byte unchanged and pass their actual QEMU regression suites. Native evidence is saved in `artifacts/deadline-tests.log`; clean-machine results are tracked per published commit in GitHub Actions.
+
+The [trusted-time contract](DEADLINES.md) explicitly treats repeated notifications as wakeup hints, not elapsed time. Equal samples cannot detect a frozen/replayed clock; no callback means no progress guarantee. This is model evidence, not an independent timer, flood-resistant scheduling or physical-stop deadline proof. Runtime clock/wakeup authority, clock-source validation and worst-case scheduling remain next gates; milestones 0.3/0.4 remain incomplete.
+
 ## 2026-09-21 — independent worker containment while broker is hung
 
 Added a separate seven-domain release fixture with an independent observer, deliberately blocked caller, spinning broker, supervisor and two pre-created workers. The observer has no broker RPC. A one-way request page plus notification reaches the supervisor, which polls the reduction latch, closes the worker gate and records STOPPED only after actual TCB suspension. The broker continues spinning, the caller never returns, and the outstanding ticket remains pending. No drain endpoint exists; reuse/reactivation and replacement attempts are refused.
@@ -153,6 +161,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Investigate a driver-independent trigger and explicit trusted-time contract for the isolated containment experiment. The new observer survives a blocked broker/caller but still uses serial before publication. Define notification flooding, timing and failure semantics before adding timer/device authority. Continue to refuse replacement without real broker/resource-owner drain; do not turn missing confirmation into success.
+Inspect the pinned platform/kernel timer interfaces and specify a test-only driver-independent wakeup and fixed clock source for the isolated containment experiment. The native deadline model and trusted-time contract are now tested, but no guest uses them. The observer still uses serial before publication. Specify exact device/IRQ authority, source validation, bounded handler/acknowledgement work and scheduling/flood failure semantics before changing a guest graph. Then test withheld/coalesced wakeups and stuck serial/broker paths. Continue to refuse replacement without real broker/resource-owner drain; do not turn missing confirmation into success.
 
 The one-shot signed UART workflow above is already implemented experimentally, so it is no longer the next increment. Its real provisioning, verifier restart, durable replay and authenticated-receipt gates remain open. Keep credentials operator-controlled, uncertain requests unretried, and all existing images/authority graphs unchanged during the new experiment.

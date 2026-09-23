@@ -16,6 +16,8 @@ An experimental [worker-lifecycle model](docs/LIFECYCLE.md) tests one-use replac
 
 A [reduction latch](docs/REDUCTION.md) tests sticky containment requests, including requests before worker selection (`make reduction-test`). A separate [hung-broker experiment](docs/CONTAINMENT-RUNTIME.md) now uses an independent notification to stop a worker while its broker keeps spinning and a caller remains blocked. Pending work is retained and replacement denied without drain. Run `make containment-smoke` or `make containment-smoke-saved`; this is test-only, not broker recovery or a deadline guarantee.
 
+A native-only [lifetime deadline model](docs/DEADLINES.md) adds nonrenewable limits and fail-closed clock observations to the one-use lifecycle (`make deadline-test`). It is excluded from every guest and provides no hardware timer or physical-stop deadline guarantee.
+
 Host tests require a C11 compiler, Make, and Python 3.9+:
 
 ```sh

@@ -1,5 +1,7 @@
 # TCS boot artifacts
 
+`deadline-tests.log` records native nonrenewable lifetime tests and 201,254 reference comparisons over 2,141 bounded states. It includes clock failures/regressions, expiry before admission, repeated observations and retained stop/drain obligations. It is not evidence of a hardware timer, independently delivered wakeup, flood-resistant scheduling or a physical-stop deadline. All ten images exclude the new library. See [the trusted-time contract](../docs/DEADLINES.md).
+
 `containment-test.img` is a separate seven-domain release experiment: an independent notification stops a worker while its broker spins and its caller stays blocked. `containment-boot.log` records stable worker observations, continuing broker progress, retained pending work and denied replacement; `containment-runtime-tests.log` records adapter/graph/harness checks; `containment-report.txt` records construction. Run `make containment-smoke-saved` without an SDK/compiler. No broker recovery, serial-hang resilience, drain or timing proof is claimed. See [the runtime contract](../docs/CONTAINMENT-RUNTIME.md).
 
 `reduction-tests.log` records native sticky reduction tests: 365 bounded states, 566,504 reference comparisons, concurrent atomic publication and failure cases. That log is not guest hung-broker containment, timing, kernel-stop or formal-proof evidence. Only the separate tenth image links the reduction latch; the nine pre-existing images exclude it. See [its observation and authority limits](../docs/REDUCTION.md).

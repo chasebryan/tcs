@@ -1,0 +1,10 @@
+"build/deadline_test"
+PASS deadline model: one-use lifetime, equality expiry, sticky clock failure, checked arithmetic, retained stop/drain obligations
+PASS deadline model: 200000 repeated observations cannot renew or fabricate elapsed time; no hardware timing guarantee
+TCS_TEST_BUILD_DIR="/Users/chasebryan/Documents/Codex/2026-09-20/referenced-chatgpt-conversation-this-is-an/outputs/TCS/build" python3 -m unittest discover -s tests -p 'deadline_model_test.py'
+...
+----------------------------------------------------------------------
+Ran 3 tests in 8.431s
+
+OK
+PASS deadline reference exploration: 2141 states, 201254 comparisons; ticks/ends <= 2, duration 1, issued <= 1

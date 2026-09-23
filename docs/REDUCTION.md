@@ -122,3 +122,7 @@ notification flooding, trusted clocks/deadlines and scheduling analysis. Supervi
 handlers must not block on services they are intended to contain, and late resume
 work must not undo stop. Drain remains an explicit resource-owner obligation.
 This does not complete roadmap 0.3 or 0.4.
+
+A separate native-only [deadline wrapper](DEADLINES.md) now tests fixed lifetimes
+and fail-closed clock observations. It is not linked into this runtime fixture;
+independent wakeup delivery and physical timing guarantees remain unimplemented.

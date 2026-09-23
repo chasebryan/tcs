@@ -14,6 +14,8 @@ Milestones are acceptance gates, not calendar promises.
 
 ## Decisions to resolve during lifecycle work
 
+The native-only [deadline model](DEADLINES.md) gives each reserved one-use slot a nonrenewable lifetime, samples before admission, and permanently inhibits both slots on clock failure/regression. It never invents stop/drain evidence. A trusted clock source, independently delivered wakeup, flood-resistant scheduling and measured physical-stop bounds remain runtime gates; no guest links this model yet.
+
 The [reduction latch](REDUCTION.md) makes observed requests permanent for a one-use slot, including before selection, without replacing stop/drain evidence. A separate [hung-broker fixture](CONTAINMENT-RUNTIME.md) now stops a worker via an independent notification while its broker spins and caller remains blocked. Pending work is retained; no drain or replacement is fabricated. Driver-independent triggers, trusted deadlines and resource-owner quiescence remain gates; published requests are not containment acknowledgements.
 
 The [experimental lifecycle model](LIFECYCLE.md) begins this investigation with two one-use worker slots and separately correlated stop/drain evidence. A [test-only runtime experiment](LIFECYCLE-RUNTIME.md) now exercises a noncooperating worker, actual child stop, ticket drain, distinct replacement and kernel-fault containment. Retired resources remain allocated; authenticated control, generalized quiescence and reclamation are absent, so milestone 0.3 is not complete.

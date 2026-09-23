@@ -52,6 +52,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: lifecycle-test lifecycle-cross-check
 .PHONY: lifecycle-image lifecycle-smoke lifecycle-smoke-saved
 .PHONY: reduction-test reduction-cross-check
+.PHONY: deadline-test deadline-cross-check
 .PHONY: containment-image containment-smoke containment-smoke-saved
 .SECONDARY:
 all: test
@@ -107,6 +108,13 @@ $(BUILD_DIR)/reduction_test $(BUILD_DIR)/reduction_probe: $(BUILD_DIR)/%: tests/
 reduction-test: $(BUILD_DIR)/reduction_test $(BUILD_DIR)/reduction_probe
 	"$(BUILD_DIR)/reduction_test"
 	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'reduction_model_test.py'
+
+$(BUILD_DIR)/deadline_test $(BUILD_DIR)/deadline_probe: $(BUILD_DIR)/%: tests/%.c lib/deadline.c lib/reduction.c lib/lifecycle.c include/tcs/deadline.h include/tcs/reduction.h include/tcs/lifecycle.h Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/lifecycle.c lib/reduction.c lib/deadline.c "$<" -o "$@"
+
+deadline-test: $(BUILD_DIR)/deadline_test $(BUILD_DIR)/deadline_probe
+	"$(BUILD_DIR)/deadline_test"
+	TCS_TEST_BUILD_DIR="$(abspath $(BUILD_DIR))" $(PYTHON) -m unittest discover -s tests -p 'deadline_model_test.py'
 
 $(BUILD_DIR)/terminal_test: lib/terminal.c tests/terminal_test.c include/tcs/terminal.h | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -fsanitize=address,undefined lib/terminal.c tests/terminal_test.c -o "$@"
@@ -181,6 +189,7 @@ test: $(BUILD_DIR)/launch_probe $(BUILD_DIR)/signed_input_test $(BUILD_DIR)/sign
 test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe $(BUILD_DIR)/lifecycle_runtime_test
 test: $(BUILD_DIR)/reduction_test $(BUILD_DIR)/reduction_probe
 test: $(BUILD_DIR)/containment_runtime_test
+test: $(BUILD_DIR)/deadline_test $(BUILD_DIR)/deadline_probe
 
 test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
@@ -188,6 +197,7 @@ test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_te
 	"$(BUILD_DIR)/lifecycle_runtime_test"
 	"$(BUILD_DIR)/reduction_test"
 	"$(BUILD_DIR)/containment_runtime_test"
+	"$(BUILD_DIR)/deadline_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
@@ -242,6 +252,12 @@ $(RELEASE_DIR)/reduction_model.o: lib/reduction.c include/tcs/reduction.h includ
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
 
 reduction-cross-check: $(RELEASE_DIR)/reduction_model.o
+
+# Native-only timing contract: no guest links this object.
+$(RELEASE_DIR)/deadline_model.o: lib/deadline.c include/tcs/deadline.h include/tcs/reduction.h include/tcs/lifecycle.h Makefile | $(RELEASE_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
+
+deadline-cross-check: $(RELEASE_DIR)/deadline_model.o
 
 $(addprefix $(CONTAINMENT_DIR)/,observer.o supervisor.o broker.o caller.o worker.o): $(CONTAINMENT_DIR)/%.o: tests/containment/%.c tests/containment/runtime.h $(HEADERS) Makefile | $(CONTAINMENT_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_CONTAINMENT_TEST_PROFILE=1 -c "$<" -o "$@"
