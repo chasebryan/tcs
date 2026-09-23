@@ -1,0 +1,8 @@
+PASS containment adapters: hung-call trap, no observer broker RPC, notification-only receipt, no status-poll rescue
+PASS gate/stop ordering, nonreturning kernel failure, clobbered registers, missing drain, malformed replies, authority and echo/loss
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.500s
+
+OK
+PASS containment authority graph: 507 element/attribute mutations rejected

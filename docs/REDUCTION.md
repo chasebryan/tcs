@@ -1,9 +1,9 @@
 # Experimental reduction latch
 
-Status: native-tested model and C11 atomic mailbox, cross-compiled for AArch64;
-**not linked into any of the nine guest images**. This is a foundation for an
-independent management path, not observed containment of a hung broker/driver.
-The [existing runtime experiment](LIFECYCLE-RUNTIME.md) remains unchanged.
+Status: native-tested model and C11 atomic mailbox, now used by one separate
+[hung-broker test profile](CONTAINMENT-RUNTIME.md). The nine pre-existing images
+remain unchanged. The new experiment observes worker containment while a broker
+is stuck; it does not stop/recover the broker or survive a hung serial driver.
 
 ## Why a latch instead of a command queue
 
@@ -17,7 +17,8 @@ notification. These exact sources are included in `third_party/sources`.
 The current lifecycle controller calls broker and serial synchronously. Giving
 that same controller another operation does not make it survive those calls.
 An independent producer and an independently runnable supervisor are necessary
-runtime gates. This increment does not add either to a guest.
+runtime gates. The separate runtime profile now supplies a fixture-specific path;
+the model and native tests below are not by themselves evidence of that path.
 
 For the existing two **one-use** worker slots, reduction requests need no payload,
 queue, incarnation counter or reset: bit 0 permanently inhibits slot 0; bit 1
@@ -110,13 +111,14 @@ Address/undefined-behavior sanitizers are enabled; no race-detector or coverage
 claim is implied. Saved evidence is `artifacts/reduction-tests.log`.
 
 `make reduction-cross-check` compiles a separate AArch64 object. Build-plan tests
-exclude it from all nine guests. No production graph, policy, signed administrator,
-credential, image format or saved boot image is changed.
+exclude it from all nine pre-existing guests and restrict its new use to the
+separate containment supervisor. No production graph, policy, signed administrator
+or credential is changed; the tenth image is explicitly test-only.
 
-Next: a separately checked test-only producer/supervisor profile that remains
-independent of the UART and broker; actual hung-broker injection; visible,
-independent stop evidence; observation before admissions and on independent
-wakeups; bounded notification handling under flooding; trusted clocks/deadlines
-and scheduling analysis. Supervisor handlers must not block on services they
-are intended to contain, and late resume work must not undo stop. Drain remains
-an explicit resource-owner obligation. This does not complete roadmap 0.3 or 0.4.
+The new runtime profile supplies hung-broker injection, independent notification
+stop evidence and polling before admission; its observer still depends on UART
+before publication. Remaining gates include driver-independent triggers, bounded
+notification flooding, trusted clocks/deadlines and scheduling analysis. Supervisor
+handlers must not block on services they are intended to contain, and late resume
+work must not undo stop. Drain remains an explicit resource-owner obligation.
+This does not complete roadmap 0.3 or 0.4.

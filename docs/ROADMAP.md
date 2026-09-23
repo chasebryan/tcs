@@ -14,7 +14,7 @@ Milestones are acceptance gates, not calendar promises.
 
 ## Decisions to resolve during lifecycle work
 
-The native-only [reduction latch](REDUCTION.md) starts the independent-control investigation: observed requests are permanent for a one-use slot, including before selection, and never replace stop/drain evidence. It is not connected to the runtime fixture. An independently runnable producer/supervisor and actual hung-broker tests remain the next runtime gates; published requests are not containment acknowledgements.
+The [reduction latch](REDUCTION.md) makes observed requests permanent for a one-use slot, including before selection, without replacing stop/drain evidence. A separate [hung-broker fixture](CONTAINMENT-RUNTIME.md) now stops a worker via an independent notification while its broker spins and caller remains blocked. Pending work is retained; no drain or replacement is fabricated. Driver-independent triggers, trusted deadlines and resource-owner quiescence remain gates; published requests are not containment acknowledgements.
 
 The [experimental lifecycle model](LIFECYCLE.md) begins this investigation with two one-use worker slots and separately correlated stop/drain evidence. A [test-only runtime experiment](LIFECYCLE-RUNTIME.md) now exercises a noncooperating worker, actual child stop, ticket drain, distinct replacement and kernel-fault containment. Retired resources remain allocated; authenticated control, generalized quiescence and reclamation are absent, so milestone 0.3 is not complete.
 

@@ -49,8 +49,10 @@ Bootstrap can be rerun. It rechecks the cached archive hash and reuses directori
 | `make admin-test-smoke` | Build/run separate signed administration IPC test profile with public fixtures |
 | `make admin-test-smoke-saved` | Run saved administration test image; native C fixture compiler required, no SDK required |
 | `make admin-cross-check` | Compile signed-administration, public launch-context codec, and pinned Ed25519 code for AArch64; no new endpoint/image |
-| `make reduction-test` | Native sanitized sticky-reduction model, atomic-publication tests and bounded reference comparison; no guest |
-| `make reduction-cross-check` | Compile native-only reduction latch for AArch64; excluded from all nine guest images |
+| `make reduction-test` | Native sanitized sticky-reduction model, atomic-publication tests and bounded reference comparison |
+| `make reduction-cross-check` | Compile reduction latch for AArch64; only separate containment supervisor links it |
+| `make containment-smoke` | Build/test separate hung-broker fixture; independent notification stops worker, missing drain blocks replacement |
+| `make containment-smoke-saved` | Run included containment image without SDK/compiler; no broker or serial recovery claim |
 | `make image` | Build five server ELFs and `build/loader.img` |
 | `make smoke` | Build, boot, require `TCS SEED PASS`, save `build/boot.log`, stop the emulator |
 | `make verify-artifacts` | Check the saved image, recorded source inputs, notices, and upstream archives |
@@ -80,9 +82,9 @@ Use a fresh build directory when changing SDK/compiler paths or versions; Make d
 
 ## Kernel profile separation
 
-The [reduction latch](REDUCTION.md) is native-only. Its tests use POSIX threads and lock-free C11 64-bit atomics on the supported 64-bit hosts; cross-compilation creates a separate object and grants no runtime authority. Build tests check exclusion from all nine guest targets.
+The [reduction latch](REDUCTION.md) has native tests using POSIX threads and lock-free C11 64-bit atomics on the supported 64-bit hosts. Its target object is linked only by the separately selected [containment supervisor](CONTAINMENT-RUNTIME.md); build tests check exclusion from the nine pre-existing targets. This tenth image uses a distinct `build/containment-test` directory, exact graph and explicit test-profile flag.
 
-`make lifecycle-test` runs the experimental lifecycle model's native sanitizer and bounded differential tests. `make lifecycle-cross-check` compiles it for freestanding AArch64. Only the separate `make lifecycle-image` target links this model, into a test-only supervisor. `make lifecycle-smoke` exercises that guest; `make lifecycle-smoke-saved` runs its included image without an SDK. All pre-existing targets exclude the model. See [model scope](LIFECYCLE.md) and [runtime fixture limits](LIFECYCLE-RUNTIME.md).
+`make lifecycle-test` runs the experimental lifecycle model's native sanitizer and bounded differential tests. `make lifecycle-cross-check` compiles it for freestanding AArch64. The separate lifecycle and containment targets link it into their test-only supervisors. `make lifecycle-smoke` exercises the original lifecycle guest; `make lifecycle-smoke-saved` runs its included image without an SDK. The eight earlier targets exclude the model. See [model scope](LIFECYCLE.md) and [runtime fixture limits](LIFECYCLE-RUNTIME.md).
 
 Native cryptography tests compile the two pinned Monocypher sources once into `$(BUILD_DIR)/host-sanitized`, with address/undefined-behavior sanitizers and existing warning flags. Seven native test/fixture programs share those objects and retain sanitizer flags when linking. Mode-specific fixture definitions remain on their own test/tool sources. The unsanitized `tcs-operator` build and all freestanding guest objects compile separately and never consume this host cache. No upstream crypto source or sanitizer coverage is removed.
 

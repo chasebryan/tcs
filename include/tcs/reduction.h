@@ -4,7 +4,7 @@
 #include "tcs/lifecycle.h"
 #include <stdatomic.h>
 
-/* Experimental, native-tested reduction latch. Not connected to a guest.
+/* Experimental reduction latch; used only by a separate test-only supervisor.
  * Private single-owner state; zero-initialize ONCE with the lifecycle bootstrap
  * preconditions. No reset, slot reuse, shared model memory or kernel operations.
  * Only the mailbox word is shared. Its writer has reduction authority over BOTH
@@ -33,11 +33,12 @@ uint64_t tcs_rd_stop_mask(const struct tcs_reduction *control);
 /* Additional gate only; ordinary policy checks remain required. */
 bool tcs_rd_allows(const struct tcs_reduction *control, uint64_t slot, uint64_t incarnation);
 
-/* Native C11 mailbox experiment; no notification, scheduling or cross-PD memory
- * mapping is implemented. Initialize before publication, never clear it.
+/* C11 mailbox helper; this library supplies no notification or scheduling.
+ * Cross-PD mapping exists only in the separate containment test profile.
+ * Initialize before publication, never clear it.
  * Publish is atomic OR (lock-free is required, wait-freedom is NOT claimed).
  * Success means published, NOT observed/contained/stopped/acknowledged.
- * A future adapter samples before every model event and on independent wakeups.
+ * An adapter must sample before every model event and on independent wakeups.
  * The shared cell cannot preserve a hostile write withdrawn before any sample. */
 bool tcs_rd_publish(struct tcs_reduction_mailbox *mailbox, uint64_t requests);
 uint64_t tcs_rd_sample(const struct tcs_reduction_mailbox *mailbox);

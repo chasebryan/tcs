@@ -83,7 +83,14 @@ def main():
             lifecycle.stat().st_size != profile["image_bytes"] or
             actual["artifacts/lifecycle-test.img"] != profile["image_sha256"]):
         raise SystemExit("Lifecycle test image does not match build.json")
-    print("PASS nine saved images, source inputs, upstream source bundles, and licenses (SHA-256)")
+    containment = ROOT / "artifacts/containment-test.img"
+    profile = record["containment_runtime_test"]
+    if (profile["config"] != "release" or profile["test_only"] is not True or
+            profile["production_ready"] is not False or
+            containment.stat().st_size != profile["image_bytes"] or
+            actual["artifacts/containment-test.img"] != profile["image_sha256"]):
+        raise SystemExit("Containment test image does not match build.json")
+    print("PASS ten saved images, source inputs, upstream source bundles, and licenses (SHA-256)")
 
 
 if __name__ == "__main__":

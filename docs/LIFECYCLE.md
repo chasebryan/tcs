@@ -1,7 +1,8 @@
 # Experimental worker-lifecycle model
 
-Status: experimental model with native tests, now used by one separate
-[test-only runtime supervisor](LIFECYCLE-RUNTIME.md). The model itself performs
+Status: experimental model with native tests, used by separate
+[lifecycle](LIFECYCLE-RUNTIME.md) and [hung-broker containment](CONTAINMENT-RUNTIME.md)
+test-only supervisors. The model itself performs
 no kernel operations; the runtime adapter supplies the narrow stop/drain
 evidence described there. No resource reclamation or completion of roadmap
 milestone 0.3 is claimed. The eight pre-existing images and signed administrator
@@ -109,7 +110,7 @@ to replace a worker when stop confirmation is absent. The synthetic counter
 states are structurally valid but not all reachable from two fresh slots.
 `make lifecycle-cross-check` compiles an AArch64 object without linking a guest.
 Build-plan tests exclude lifecycle objects/sources from all eight pre-existing
-guest targets. Only the new, separately checked lifecycle experiment links it.
+guest targets. Only the separately checked lifecycle and containment supervisors link it.
 
 ## Required runtime gates
 

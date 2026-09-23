@@ -1,0 +1,40 @@
+TCS CONTAINMENT READY (release-kernel, TEST-ONLY, fixture approval)
+STATE 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+fixture> nextx
+ERROR fixture commands: status | next
+fixture> next^C
+ERROR discarded input
+fixture> status
+STATE 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+fixture> next
+STATE 1 0 0 0 1 2 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+fixture> next
+STATE 2 0 0 0 1 3 1 1 1 0 0 0 0 0 0 0 0 540351 0 0 1 0 0
+fixture> status
+STATE 2 0 0 0 1 3 1 1 1 0 0 0 0 0 0 0 0 1969322 0 0 1 0 0
+fixture> next
+STATE 3 0 0 0 1 3 1 1 1 0 0 0 0 0 0 0 0 1969322 0 378393 2 0 0
+fixture> status
+STATE 3 0 0 0 1 3 1 1 1 0 0 0 0 0 0 0 0 3065132 0 1439174 2 0 0
+fixture> next
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 1439174 2 1 0
+fixture> status
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 2028127 2 1 0
+fixture> status
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 2400916 2 1 0
+fixture> status
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 2598222 2 1 0
+fixture> status
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3001585 2 1 0
+fixture> status
+STATE 4 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3170068 2 1 0
+fixture> next
+STATE 5 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3583574 2 1 7
+TCS CONTAINMENT PASS (test fixture, missing drain blocks replacement)
+fixture> status
+STATE 5 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3583574 2 1 7
+fixture> status
+STATE 5 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3858444 2 1 7
+fixture> status
+STATE 5 0 1 0 1 4 1 1 1 1 0 0 0 0 0 0 0 3313384 0 3858444 2 1 7
+fixture> qemu-system-aarch64: terminating on signal 15 from pid 86818 (<unknown process>)

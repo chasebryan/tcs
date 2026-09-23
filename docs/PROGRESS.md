@@ -4,6 +4,16 @@
 
 Continue through the roadmap in small, reviewable increments. Preserve the working seed, keep runtime claims narrower than the observed evidence, and never grant a new input path administrative authority by default.
 
+## 2026-09-21 — independent worker containment while broker is hung
+
+Added a separate seven-domain release fixture with an independent observer, deliberately blocked caller, spinning broker, supervisor and two pre-created workers. The observer has no broker RPC. A one-way request page plus notification reaches the supervisor, which polls the reduction latch, closes the worker gate and records STOPPED only after actual TCB suspension. The broker continues spinning, the caller never returns, and the outstanding ticket remains pending. No drain endpoint exists; reuse/reactivation and replacement attempts are refused.
+
+The host observes worker and broker progress before reduction, then five identical worker-counter samples while broker progress continues. A separate supervisor-owned receipt records only stops performed inside the notification callback. After publication, the observer refuses all supervisor RPCs until that receipt appears, so status polling cannot rescue missing notification delivery. The native withheld-notification test checks this explicitly. Malformed receipts fail rather than being treated as a wait condition.
+
+Sanitized tests exercise the actual five new adapters with mocked kernel/serial operations, nonreturning-loop traps, stop/resume failure, message-register clobbering, early inhibition, late startup, malformed post-commit replies, caller/shape rejection, repeated notifications, input loss and partial echo. The native negative matrix was corrected to avoid invoking the valid intentional-hang branch outside its active trap scope; the corrected tests pass. All native checks and 74 Python tests pass; the exact authority graph rejects 507 mutations. All nine earlier images rebuild byte-for-byte unchanged and pass their emulator suites. The tenth image and its evidence are saved separately.
+
+See [the runtime contract](CONTAINMENT-RUNTIME.md). This contains a worker despite a stuck broker; it does not contain/recover the broker, survive a stuck serial driver before publication, establish a deadline, authenticate lifecycle administration or reclaim resources. Approval/audit remain fixtures, and milestones 0.3/0.4 remain incomplete. No credential or ordinary/signed-profile authority changes.
+
 ## 2026-09-21 — native-only sticky reduction latch
 
 Added a private single-owner wrapper around the existing lifecycle model and a separate one-word C11 atomic mailbox. Observed containment bits remain set for each one-use slot, including requests before selection. Every wrapped event polls first; rejected or unauthorized events cannot roll back independently observed reductions. Malformed words inhibit both slots without discarding pending work or inventing physical stop/drain evidence. No code is linked into a guest, and no new authority or credential is introduced.
@@ -143,6 +153,6 @@ Local validation passed: sanitized policy and terminal tests, 50,000 policy tran
 
 ## Next bounded increment
 
-Build a separate test-only reduction producer/supervisor path independent of the existing UART controller and broker. Start from the native reduction latch, preserve its observation boundary, and inject a genuinely hung broker. Require independent kernel-stop evidence and refusal of replacement without actual broker/resource drain. No production integration or deadline claim precedes those tests.
+Investigate a driver-independent trigger and explicit trusted-time contract for the isolated containment experiment. The new observer survives a blocked broker/caller but still uses serial before publication. Define notification flooding, timing and failure semantics before adding timer/device authority. Continue to refuse replacement without real broker/resource-owner drain; do not turn missing confirmation into success.
 
 The one-shot signed UART workflow above is already implemented experimentally, so it is no longer the next increment. Its real provisioning, verifier restart, durable replay and authenticated-receipt gates remain open. Keep credentials operator-controlled, uncertain requests unretried, and all existing images/authority graphs unchanged during the new experiment.

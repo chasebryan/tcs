@@ -1,0 +1,51 @@
+<system>
+    <memory_region name="uart" size="0x1000" phys_addr="0x09000000" />
+    <memory_region name="worker_a_counter" size="0x1000" />
+    <memory_region name="worker_b_counter" size="0x1000" />
+    <memory_region name="broker_counter" size="0x1000" />
+    <memory_region name="caller_phase" size="0x1000" />
+    <memory_region name="request" size="0x1000" />
+    <memory_region name="receipt" size="0x1000" />
+    <protection_domain name="observer" priority="10" budget="10000" period="10000">
+        <program_image path="observer.elf" />
+        <map mr="worker_a_counter" vaddr="0x6000000" perms="r" cached="true" setvar_vaddr="observer_worker_a_vaddr" />
+        <map mr="worker_b_counter" vaddr="0x6001000" perms="r" cached="true" setvar_vaddr="observer_worker_b_vaddr" />
+        <map mr="broker_counter" vaddr="0x6002000" perms="r" cached="true" setvar_vaddr="observer_broker_vaddr" />
+        <map mr="caller_phase" vaddr="0x6003000" perms="r" cached="true" setvar_vaddr="observer_caller_vaddr" />
+        <map mr="request" vaddr="0x6004000" perms="rw" cached="true" setvar_vaddr="observer_request_vaddr" />
+        <map mr="receipt" vaddr="0x6005000" perms="r" cached="true" setvar_vaddr="observer_receipt_vaddr" />
+    </protection_domain>
+    <protection_domain name="supervisor" priority="50" budget="10000" period="10000">
+        <program_image path="supervisor.elf" />
+        <map mr="request" vaddr="0x6000000" perms="r" cached="true" setvar_vaddr="request_vaddr" />
+        <map mr="receipt" vaddr="0x6001000" perms="rw" cached="true" setvar_vaddr="receipt_vaddr" />
+        <protection_domain name="worker_a" priority="20" budget="1000" period="10000" id="1">
+            <program_image path="worker_a.elf" />
+            <map mr="worker_a_counter" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="worker_counter_vaddr" />
+        </protection_domain>
+        <protection_domain name="worker_b" priority="19" budget="1000" period="10000" id="2">
+            <program_image path="worker_b.elf" />
+            <map mr="worker_b_counter" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="worker_counter_vaddr" />
+        </protection_domain>
+    </protection_domain>
+    <protection_domain name="broker" priority="40" budget="1000" period="10000">
+        <program_image path="broker.elf" />
+        <map mr="broker_counter" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="broker_counter_vaddr" />
+    </protection_domain>
+    <protection_domain name="caller" priority="30" budget="1000" period="10000">
+        <program_image path="caller.elf" />
+        <map mr="caller_phase" vaddr="0x6000000" perms="rw" cached="true" setvar_vaddr="caller_phase_vaddr" />
+    </protection_domain>
+    <protection_domain name="serial" priority="60" budget="2000" period="10000">
+        <program_image path="serial.elf" />
+        <map mr="uart" vaddr="0x4000000" perms="rw" cached="false" setvar_vaddr="uart_base_vaddr" />
+        <irq irq="33" id="0" trigger="level" />
+    </protection_domain>
+    <channel><end pd="observer" id="0" pp="true" notify="false" /><end pd="serial" id="1" notify="true" /></channel>
+    <channel><end pd="observer" id="1" pp="true" notify="true" /><end pd="supervisor" id="0" notify="false" /></channel>
+    <channel><end pd="observer" id="2" notify="true" /><end pd="caller" id="0" notify="false" /></channel>
+    <channel><end pd="caller" id="1" pp="true" notify="false" /><end pd="broker" id="2" notify="false" /></channel>
+    <channel><end pd="worker_a" id="0" pp="true" notify="false" /><end pd="broker" id="0" notify="true" /></channel>
+    <channel><end pd="worker_b" id="0" pp="true" notify="false" /><end pd="broker" id="1" notify="true" /></channel>
+    <channel><end pd="broker" id="3" pp="true" notify="false" /><end pd="supervisor" id="1" notify="false" /></channel>
+</system>

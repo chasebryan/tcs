@@ -56,3 +56,7 @@ jobs:
         run: make lifecycle-smoke
       - name: Saved lifecycle supervisor experiment
         run: make lifecycle-smoke-saved
+      - name: Independent hung-broker containment experiment
+        run: make containment-smoke
+      - name: Saved hung-broker containment experiment
+        run: make containment-smoke-saved

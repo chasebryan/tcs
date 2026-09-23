@@ -1,0 +1,476 @@
+# Initial Task (CapDL Initialiser) Details
+
+# IRQ Details
+	- IRQ: 'irq_33_serial'
+		* Number: 33
+		* Trigger: level
+		* CPU: 0
+
+
+# TCB Details
+	- TCB: 'tcb_broker'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 40
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_broker_root'
+			-> VSpace: 'pud_broker'
+			-> IPC Buffer: 'frame_ipcbuf_broker'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_broker'
+			-> Notification: 'ntfn_broker'
+
+	- TCB: 'tcb_caller'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 30
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_caller_root'
+			-> VSpace: 'pud_caller'
+			-> IPC Buffer: 'frame_ipcbuf_caller'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_caller'
+			-> Notification: 'ntfn_caller'
+
+	- TCB: 'tcb_monitor'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 255
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> VSpace: 'pud_monitor'
+			-> IPC Buffer: 'frame_ipcbuf_monitor'
+			-> CSpace: 'cnode_monitor'
+			-> Scheduling Context: 'sched_context_monitor'
+
+	- TCB: 'tcb_observer'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 10
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_observer_root'
+			-> VSpace: 'pud_observer'
+			-> IPC Buffer: 'frame_ipcbuf_observer'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_observer'
+			-> Notification: 'ntfn_observer'
+
+	- TCB: 'tcb_serial'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 60
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_serial_root'
+			-> VSpace: 'pud_serial'
+			-> IPC Buffer: 'frame_ipcbuf_serial'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_serial'
+			-> Notification: 'ntfn_serial'
+
+	- TCB: 'tcb_supervisor'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 50
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_supervisor_root'
+			-> VSpace: 'pud_supervisor'
+			-> IPC Buffer: 'frame_ipcbuf_supervisor'
+			-> Fault Endpoint: 'ep_fault_monitor'
+			-> Scheduling Context: 'sched_context_supervisor'
+			-> Notification: 'ntfn_supervisor'
+
+	- TCB: 'tcb_worker_a'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 20
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_worker_a_root'
+			-> VSpace: 'pud_worker_a'
+			-> IPC Buffer: 'frame_ipcbuf_worker_a'
+			-> Fault Endpoint: 'ep_supervisor'
+			-> Scheduling Context: 'sched_context_worker_a'
+			-> Notification: 'ntfn_worker_a'
+
+	- TCB: 'tcb_worker_b'
+		* IP: 0x200000
+		* SP: 0xffffffe000
+		* IPC Buffer: 0xfffffff000
+		* Priority: 19
+		* CPU Affinity: 0
+		* Bound Objects:
+			-> CSpace: 'cnode_worker_b_root'
+			-> VSpace: 'pud_worker_b'
+			-> IPC Buffer: 'frame_ipcbuf_worker_b'
+			-> Fault Endpoint: 'ep_supervisor'
+			-> Scheduling Context: 'sched_context_worker_b'
+			-> Notification: 'ntfn_worker_b'
+
+
+# CNode Details
+	- CNode: 'cnode_broker'
+		* Slot: 1
+			-> Object: 'ep_broker'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x5
+		* Slot: 3
+			-> Object: 'pud_broker'
+		* Slot: 4
+			-> Object: 'reply_broker'
+		* Slot: 10
+			-> Object: 'ntfn_worker_a'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 11
+			-> Object: 'ntfn_worker_b'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 77
+			-> Object: 'ep_supervisor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+
+	- CNode: 'cnode_caller'
+		* Slot: 1
+			-> Object: 'ntfn_caller'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x6
+		* Slot: 3
+			-> Object: 'pud_caller'
+		* Slot: 4
+			-> Object: 'reply_caller'
+		* Slot: 75
+			-> Object: 'ep_broker'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000002
+
+	- CNode: 'cnode_monitor'
+		* Slot: 1
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'reply_monitor'
+		* Slot: 10
+			-> Object: 'tcb_observer'
+		* Slot: 11
+			-> Object: 'tcb_supervisor'
+		* Slot: 12
+			-> Object: 'tcb_worker_a'
+		* Slot: 13
+			-> Object: 'tcb_worker_b'
+		* Slot: 14
+			-> Object: 'tcb_broker'
+		* Slot: 15
+			-> Object: 'tcb_caller'
+		* Slot: 16
+			-> Object: 'tcb_serial'
+
+	- CNode: 'cnode_observer'
+		* Slot: 1
+			-> Object: 'ntfn_observer'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x1
+		* Slot: 3
+			-> Object: 'pud_observer'
+		* Slot: 4
+			-> Object: 'reply_observer'
+		* Slot: 11
+			-> Object: 'ntfn_supervisor'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 12
+			-> Object: 'ntfn_caller'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 74
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+		* Slot: 75
+			-> Object: 'ep_supervisor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_serial'
+		* Slot: 1
+			-> Object: 'ep_serial'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x7
+		* Slot: 3
+			-> Object: 'pud_serial'
+		* Slot: 4
+			-> Object: 'reply_serial'
+		* Slot: 11
+			-> Object: 'ntfn_observer'
+			-> Rights: Read, Write
+			-> Badge: 0x1
+		* Slot: 138
+			-> Object: 'irq_33_serial'
+
+	- CNode: 'cnode_supervisor'
+		* Slot: 1
+			-> Object: 'ep_supervisor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_fault_monitor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x2
+		* Slot: 3
+			-> Object: 'pud_supervisor'
+		* Slot: 4
+			-> Object: 'reply_supervisor'
+		* Slot: 203
+			-> Object: 'tcb_worker_a'
+		* Slot: 204
+			-> Object: 'tcb_worker_b'
+
+	- CNode: 'cnode_worker_a'
+		* Slot: 1
+			-> Object: 'ntfn_worker_a'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_supervisor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x4000000000000001
+		* Slot: 3
+			-> Object: 'pud_worker_a'
+		* Slot: 4
+			-> Object: 'reply_worker_a'
+		* Slot: 74
+			-> Object: 'ep_broker'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000000
+
+	- CNode: 'cnode_worker_b'
+		* Slot: 1
+			-> Object: 'ntfn_worker_b'
+			-> Rights: Read, Write
+			-> Badge: 0x0
+		* Slot: 2
+			-> Object: 'ep_supervisor'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x4000000000000002
+		* Slot: 3
+			-> Object: 'pud_worker_b'
+		* Slot: 4
+			-> Object: 'reply_worker_b'
+		* Slot: 74
+			-> Object: 'ep_broker'
+			-> Rights: Read, Write, Grant
+			-> Badge: 0x8000000000000001
+
+	- CNode: 'cnode_broker_root'
+		* Slot: 0
+			-> Object: 'cnode_broker'
+
+	- CNode: 'cnode_caller_root'
+		* Slot: 0
+			-> Object: 'cnode_caller'
+
+	- CNode: 'cnode_observer_root'
+		* Slot: 0
+			-> Object: 'cnode_observer'
+
+	- CNode: 'cnode_serial_root'
+		* Slot: 0
+			-> Object: 'cnode_serial'
+
+	- CNode: 'cnode_supervisor_root'
+		* Slot: 0
+			-> Object: 'cnode_supervisor'
+
+	- CNode: 'cnode_worker_a_root'
+		* Slot: 0
+			-> Object: 'cnode_worker_a'
+
+	- CNode: 'cnode_worker_b_root'
+		* Slot: 0
+			-> Object: 'cnode_worker_b'
+
+
+# Architecture Specific Details
+
+# Kernel Objects Details: ID, Type, Name, Physical Address
+	0 - Page(4 KiB): 'frame_mr_uart_000000000' @ 0x000009000000
+	1 - CNode: 'cnode_broker' @ 0x000060000000
+	2 - CNode: 'cnode_caller' @ 0x000060004000
+	3 - CNode: 'cnode_monitor' @ 0x000060008000
+	4 - CNode: 'cnode_observer' @ 0x00006000c000
+	5 - CNode: 'cnode_serial' @ 0x0000602b0000
+	6 - CNode: 'cnode_supervisor' @ 0x0000602b4000
+	7 - CNode: 'cnode_worker_a' @ 0x0000602b8000
+	8 - CNode: 'cnode_worker_b' @ 0x0000602bc000
+	9 - PageTable: 'pud_broker' @ 0x0000602ae000
+	10 - PageTable: 'pud_caller' @ 0x0000602c0000
+	11 - PageTable: 'pud_monitor' @ 0x0000602c2000
+	12 - PageTable: 'pud_observer' @ 0x0000602c4000
+	13 - PageTable: 'pud_serial' @ 0x0000602c6000
+	14 - PageTable: 'pud_supervisor' @ 0x0000602c8000
+	15 - PageTable: 'pud_worker_a' @ 0x0000602ca000
+	16 - PageTable: 'pud_worker_b' @ 0x0000602cc000
+	17 - Page(4 KiB): 'frame_broker_stack_000000000' @ 0x0000602ce000
+	18 - Page(4 KiB): 'frame_broker_stack_000000001' @ 0x0000602cf000
+	19 - Page(4 KiB): 'frame_caller_stack_000000000' @ 0x0000602d0000
+	20 - Page(4 KiB): 'frame_caller_stack_000000001' @ 0x0000602d1000
+	21 - Page(4 KiB): 'frame_elf_broker_000000000' @ 0x0000602d2000
+	22 - Page(4 KiB): 'frame_elf_broker_000000001' @ 0x0000602d3000
+	23 - Page(4 KiB): 'frame_elf_caller_000000000' @ 0x0000602d4000
+	24 - Page(4 KiB): 'frame_elf_caller_000000001' @ 0x0000602d5000
+	25 - Page(4 KiB): 'frame_elf_monitor_000000000' @ 0x0000602d6000
+	26 - Page(4 KiB): 'frame_elf_monitor_000000001' @ 0x0000602d7000
+	27 - Page(4 KiB): 'frame_elf_monitor_000000002' @ 0x0000602d8000
+	28 - Page(4 KiB): 'frame_elf_monitor_000000003' @ 0x0000602d9000
+	29 - Page(4 KiB): 'frame_elf_monitor_000000004' @ 0x0000602da000
+	30 - Page(4 KiB): 'frame_elf_monitor_000000005' @ 0x0000602db000
+	31 - Page(4 KiB): 'frame_elf_observer_000000000' @ 0x0000602dc000
+	32 - Page(4 KiB): 'frame_elf_observer_000000001' @ 0x0000602dd000
+	33 - Page(4 KiB): 'frame_elf_observer_000000002' @ 0x0000602de000
+	34 - Page(4 KiB): 'frame_elf_observer_000000003' @ 0x0000602df000
+	35 - Page(4 KiB): 'frame_elf_observer_000000004' @ 0x0000602e0000
+	36 - Page(4 KiB): 'frame_elf_serial_000000000' @ 0x0000602e1000
+	37 - Page(4 KiB): 'frame_elf_serial_000000001' @ 0x0000602e2000
+	38 - Page(4 KiB): 'frame_elf_supervisor_000000000' @ 0x0000602e3000
+	39 - Page(4 KiB): 'frame_elf_supervisor_000000001' @ 0x0000602e4000
+	40 - Page(4 KiB): 'frame_elf_supervisor_000000002' @ 0x0000602e5000
+	41 - Page(4 KiB): 'frame_elf_supervisor_000000003' @ 0x0000602e6000
+	42 - Page(4 KiB): 'frame_elf_worker_a_000000000' @ 0x0000602e7000
+	43 - Page(4 KiB): 'frame_elf_worker_a_000000001' @ 0x0000602e8000
+	44 - Page(4 KiB): 'frame_elf_worker_b_000000000' @ 0x0000602e9000
+	45 - Page(4 KiB): 'frame_elf_worker_b_000000001' @ 0x0000602ea000
+	46 - Page(4 KiB): 'frame_ipcbuf_broker' @ 0x0000602eb000
+	47 - Page(4 KiB): 'frame_ipcbuf_caller' @ 0x0000602ec000
+	48 - Page(4 KiB): 'frame_ipcbuf_monitor' @ 0x0000602ed000
+	49 - Page(4 KiB): 'frame_ipcbuf_observer' @ 0x0000602ee000
+	50 - Page(4 KiB): 'frame_ipcbuf_serial' @ 0x0000602ef000
+	51 - Page(4 KiB): 'frame_ipcbuf_supervisor' @ 0x0000602f0000
+	52 - Page(4 KiB): 'frame_ipcbuf_worker_a' @ 0x0000602f1000
+	53 - Page(4 KiB): 'frame_ipcbuf_worker_b' @ 0x0000602f2000
+	54 - Page(4 KiB): 'frame_monitor_stack' @ 0x0000602f3000
+	55 - Page(4 KiB): 'frame_mr_broker_counter_000000000' @ 0x0000602f4000
+	56 - Page(4 KiB): 'frame_mr_caller_phase_000000000' @ 0x0000602f5000
+	57 - Page(4 KiB): 'frame_mr_receipt_000000000' @ 0x0000602f6000
+	58 - Page(4 KiB): 'frame_mr_request_000000000' @ 0x0000602f7000
+	59 - Page(4 KiB): 'frame_mr_worker_a_counter_000000000' @ 0x0000602f8000
+	60 - Page(4 KiB): 'frame_mr_worker_b_counter_000000000' @ 0x0000602f9000
+	61 - Page(4 KiB): 'frame_observer_stack_000000000' @ 0x0000602fa000
+	62 - Page(4 KiB): 'frame_observer_stack_000000001' @ 0x0000602fb000
+	63 - Page(4 KiB): 'frame_serial_stack_000000000' @ 0x0000602fc000
+	64 - Page(4 KiB): 'frame_serial_stack_000000001' @ 0x0000602fd000
+	65 - Page(4 KiB): 'frame_supervisor_stack_000000000' @ 0x0000602fe000
+	66 - Page(4 KiB): 'frame_supervisor_stack_000000001' @ 0x0000602ff000
+	67 - Page(4 KiB): 'frame_worker_a_stack_000000000' @ 0x000060300000
+	68 - Page(4 KiB): 'frame_worker_a_stack_000000001' @ 0x000060301000
+	69 - Page(4 KiB): 'frame_worker_b_stack_000000000' @ 0x000060302000
+	70 - Page(4 KiB): 'frame_worker_b_stack_000000001' @ 0x000060303000
+	71 - PageTable: 'pd_broker_vaddr_0x200000' @ 0x000060304000
+	72 - PageTable: 'pd_broker_vaddr_0xffffe00000' @ 0x000060305000
+	73 - PageTable: 'pd_caller_vaddr_0x200000' @ 0x000060306000
+	74 - PageTable: 'pd_caller_vaddr_0xffffe00000' @ 0x000060307000
+	75 - PageTable: 'pd_monitor_vaddr_0x200000' @ 0x000060308000
+	76 - PageTable: 'pd_monitor_vaddr_0xffffe00000' @ 0x000060309000
+	77 - PageTable: 'pd_observer_vaddr_0x200000' @ 0x00006030a000
+	78 - PageTable: 'pd_observer_vaddr_0xffffe00000' @ 0x00006030b000
+	79 - PageTable: 'pd_serial_vaddr_0x200000' @ 0x00006030c000
+	80 - PageTable: 'pd_serial_vaddr_0xffffe00000' @ 0x00006030d000
+	81 - PageTable: 'pd_supervisor_vaddr_0x200000' @ 0x00006030e000
+	82 - PageTable: 'pd_supervisor_vaddr_0xffffe00000' @ 0x00006030f000
+	83 - PageTable: 'pd_worker_a_vaddr_0x200000' @ 0x000060310000
+	84 - PageTable: 'pd_worker_a_vaddr_0xffffe00000' @ 0x000060311000
+	85 - PageTable: 'pd_worker_b_vaddr_0x200000' @ 0x000060312000
+	86 - PageTable: 'pd_worker_b_vaddr_0xffffe00000' @ 0x000060313000
+	87 - PageTable: 'pt_broker_vaddr_0x200000' @ 0x000060314000
+	88 - PageTable: 'pt_broker_vaddr_0x6000000' @ 0x000060315000
+	89 - PageTable: 'pt_broker_vaddr_0xfffffff000' @ 0x000060316000
+	90 - PageTable: 'pt_caller_vaddr_0x200000' @ 0x000060317000
+	91 - PageTable: 'pt_caller_vaddr_0x6000000' @ 0x000060318000
+	92 - PageTable: 'pt_caller_vaddr_0xfffffff000' @ 0x000060319000
+	93 - PageTable: 'pt_monitor_vaddr_0x200000' @ 0x00006031a000
+	94 - PageTable: 'pt_monitor_vaddr_0xffffffd000' @ 0x00006031b000
+	95 - PageTable: 'pt_observer_vaddr_0x200000' @ 0x00006031c000
+	96 - PageTable: 'pt_observer_vaddr_0x6000000' @ 0x00006031d000
+	97 - PageTable: 'pt_observer_vaddr_0xfffffff000' @ 0x00006031e000
+	98 - PageTable: 'pt_serial_vaddr_0x200000' @ 0x00006031f000
+	99 - PageTable: 'pt_serial_vaddr_0x4000000' @ 0x000060320000
+	100 - PageTable: 'pt_serial_vaddr_0xfffffff000' @ 0x000060321000
+	101 - PageTable: 'pt_supervisor_vaddr_0x200000' @ 0x000060322000
+	102 - PageTable: 'pt_supervisor_vaddr_0x6000000' @ 0x000060323000
+	103 - PageTable: 'pt_supervisor_vaddr_0xfffffff000' @ 0x000060324000
+	104 - PageTable: 'pt_worker_a_vaddr_0x200000' @ 0x000060325000
+	105 - PageTable: 'pt_worker_a_vaddr_0x6000000' @ 0x000060326000
+	106 - PageTable: 'pt_worker_a_vaddr_0xfffffff000' @ 0x000060327000
+	107 - PageTable: 'pt_worker_b_vaddr_0x200000' @ 0x000060328000
+	108 - PageTable: 'pt_worker_b_vaddr_0x6000000' @ 0x000060329000
+	109 - PageTable: 'pt_worker_b_vaddr_0xfffffff000' @ 0x00006032a000
+	110 - CNode: 'cnode_broker_root' @ 0x00006032b000
+	111 - CNode: 'cnode_caller_root' @ 0x00006032b800
+	112 - CNode: 'cnode_observer_root' @ 0x00006032c000
+	113 - CNode: 'cnode_serial_root' @ 0x00006032c800
+	114 - CNode: 'cnode_supervisor_root' @ 0x00006032d000
+	115 - CNode: 'cnode_worker_a_root' @ 0x00006032d800
+	116 - CNode: 'cnode_worker_b_root' @ 0x00006032e000
+	117 - TCB: 'tcb_broker' @ 0x00006032e800
+	118 - TCB: 'tcb_caller' @ 0x00006032f000
+	119 - TCB: 'tcb_monitor' @ 0x00006032f800
+	120 - TCB: 'tcb_observer' @ 0x000060330000
+	121 - TCB: 'tcb_serial' @ 0x000060330800
+	122 - TCB: 'tcb_supervisor' @ 0x000060331000
+	123 - TCB: 'tcb_worker_a' @ 0x000060331800
+	124 - TCB: 'tcb_worker_b' @ 0x000060332000
+	125 - SchedContext: 'sched_context_broker' @ 0x000060332800
+	126 - SchedContext: 'sched_context_caller' @ 0x000060332900
+	127 - SchedContext: 'sched_context_monitor' @ 0x000060332a00
+	128 - SchedContext: 'sched_context_observer' @ 0x000060332b00
+	129 - SchedContext: 'sched_context_serial' @ 0x000060332c00
+	130 - SchedContext: 'sched_context_supervisor' @ 0x000060332d00
+	131 - SchedContext: 'sched_context_worker_a' @ 0x000060332e00
+	132 - SchedContext: 'sched_context_worker_b' @ 0x000060332f00
+	133 - Notification: 'ntfn_broker' @ 0x000060333000
+	134 - Notification: 'ntfn_caller' @ 0x000060333040
+	135 - Notification: 'ntfn_observer' @ 0x000060333080
+	136 - Notification: 'ntfn_serial' @ 0x0000603330c0
+	137 - Notification: 'ntfn_supervisor' @ 0x000060333100
+	138 - Notification: 'ntfn_worker_a' @ 0x000060333140
+	139 - Notification: 'ntfn_worker_b' @ 0x000060333180
+	140 - Reply: 'reply_broker' @ 0x0000603331c0
+	141 - Reply: 'reply_caller' @ 0x0000603331e0
+	142 - Reply: 'reply_monitor' @ 0x000060333200
+	143 - Reply: 'reply_observer' @ 0x000060333220
+	144 - Reply: 'reply_serial' @ 0x000060333240
+	145 - Reply: 'reply_supervisor' @ 0x000060333260
+	146 - Reply: 'reply_worker_a' @ 0x000060333280
+	147 - Reply: 'reply_worker_b' @ 0x0000603332a0
+	148 - Endpoint: 'ep_broker' @ 0x0000603332c0
+	149 - Endpoint: 'ep_fault_monitor' @ 0x0000603332d0
+	150 - Endpoint: 'ep_serial' @ 0x0000603332e0
+	151 - Endpoint: 'ep_supervisor' @ 0x0000603332f0

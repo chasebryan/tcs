@@ -22,6 +22,7 @@ TERMINAL_IMAGES := $(addprefix $(BUILD_DIR)/,$(addsuffix .elf,terminal serial cl
 RELEASE_IMAGES := $(addprefix $(RELEASE_DIR)/,$(addsuffix .elf,terminal serial client storage policy audit))
 ISOLATION_DIR := $(BUILD_DIR)/isolation
 LIFECYCLE_DIR := $(BUILD_DIR)/lifecycle-test
+CONTAINMENT_DIR := $(BUILD_DIR)/containment-test
 ISOLATION_PROBES := $(addprefix $(ISOLATION_DIR)/probe,$(addsuffix .elf,1 2 3 4 5 6))
 CRYPTO_DIR := third_party/monocypher
 CRYPTO_SOURCES := $(CRYPTO_DIR)/monocypher.c $(CRYPTO_DIR)/monocypher-ed25519.c
@@ -51,6 +52,7 @@ export ZIG_LOCAL_CACHE_DIR := $(abspath $(BUILD_DIR)/zig-local-cache)
 .PHONY: lifecycle-test lifecycle-cross-check
 .PHONY: lifecycle-image lifecycle-smoke lifecycle-smoke-saved
 .PHONY: reduction-test reduction-cross-check
+.PHONY: containment-image containment-smoke containment-smoke-saved
 .SECONDARY:
 all: test
 
@@ -67,6 +69,9 @@ $(ISOLATION_DIR):
 	mkdir -p "$@"
 
 $(LIFECYCLE_DIR):
+	mkdir -p "$@"
+
+$(CONTAINMENT_DIR):
 	mkdir -p "$@"
 
 $(OPERATOR_DIR) $(FIXTURE_DIR):
@@ -88,6 +93,9 @@ $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe: $(BUILD_DIR)/%: tests/
 
 $(BUILD_DIR)/lifecycle_runtime_test: tests/lifecycle_runtime_test.c tests/lifecycle/supervisor.c tests/lifecycle/broker.c tests/lifecycle/controller.c tests/lifecycle/runtime.h tests/lifecycle/support/microkit.h lib/lifecycle.c lib/terminal.c $(HEADERS) Makefile | $(BUILD_DIR)
 	$(HOST_CC) $(HOST_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -Itests/lifecycle/support -fsanitize=address,undefined lib/lifecycle.c lib/terminal.c tests/lifecycle_runtime_test.c -o "$@"
+
+$(BUILD_DIR)/containment_runtime_test: tests/containment_runtime_test.c $(wildcard tests/containment/*.c) tests/containment/runtime.h tests/lifecycle/support/microkit.h lib/lifecycle.c lib/reduction.c lib/terminal.c $(HEADERS) Makefile | $(BUILD_DIR)
+	$(HOST_CC) $(HOST_FLAGS) -DTCS_CONTAINMENT_TEST_PROFILE=1 -Itests/lifecycle/support -fsanitize=address,undefined lib/lifecycle.c lib/reduction.c lib/terminal.c tests/containment_runtime_test.c -o "$@"
 
 lifecycle-test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe
 	"$(BUILD_DIR)/lifecycle_test"
@@ -172,12 +180,14 @@ operator-test: operator-tools $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operato
 test: $(BUILD_DIR)/launch_probe $(BUILD_DIR)/signed_input_test $(BUILD_DIR)/signed_terminal_test $(BUILD_DIR)/launch_admin_ipc_test
 test: $(BUILD_DIR)/lifecycle_test $(BUILD_DIR)/lifecycle_probe $(BUILD_DIR)/lifecycle_runtime_test
 test: $(BUILD_DIR)/reduction_test $(BUILD_DIR)/reduction_probe
+test: $(BUILD_DIR)/containment_runtime_test
 
 test: $(BUILD_DIR)/policy_test $(BUILD_DIR)/terminal_test $(BUILD_DIR)/serial_test $(BUILD_DIR)/serial_server_test $(BUILD_DIR)/status_ipc_test $(BUILD_DIR)/terminal_server_test $(BUILD_DIR)/isolation_test $(BUILD_DIR)/isolation_observer_test $(BUILD_DIR)/admin_test $(BUILD_DIR)/boot_test $(BUILD_DIR)/admin_ipc_test $(BUILD_DIR)/tcs-operator $(BUILD_DIR)/operator_fixture $(BUILD_DIR)/operator_verify $(BUILD_DIR)/launch_test check-system
 	"$(BUILD_DIR)/policy_test"
 	"$(BUILD_DIR)/lifecycle_test"
 	"$(BUILD_DIR)/lifecycle_runtime_test"
 	"$(BUILD_DIR)/reduction_test"
+	"$(BUILD_DIR)/containment_runtime_test"
 	"$(BUILD_DIR)/terminal_test"
 	"$(BUILD_DIR)/serial_test"
 	"$(BUILD_DIR)/serial_server_test"
@@ -202,6 +212,7 @@ check-system:
 	$(PYTHON) tools/check_system.py system/admin-test.system --profile admin-test
 	$(PYTHON) tools/check_system.py system/interactive.system --profile interactive
 	$(PYTHON) tools/check_system.py system/lifecycle-test.system --profile lifecycle-test
+	$(PYTHON) tools/check_system.py system/containment-test.system --profile containment-test
 
 check-tools:
 	@test -f "$(MICROKIT_SDK)/VERSION" || { echo 'Run make bootstrap first, or set MICROKIT_SDK to the extracted 2.3.0 SDK'; exit 1; }
@@ -226,11 +237,37 @@ $(RELEASE_DIR)/lifecycle_model.o: lib/lifecycle.c include/tcs/lifecycle.h Makefi
 
 lifecycle-cross-check: $(RELEASE_DIR)/lifecycle_model.o
 
-# Native-tested reduction latch only; deliberately excluded from all guests.
+# Reduction latch: only the separate containment supervisor links this object.
 $(RELEASE_DIR)/reduction_model.o: lib/reduction.c include/tcs/reduction.h include/tcs/lifecycle.h Makefile | $(RELEASE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -c "$<" -o "$@"
 
 reduction-cross-check: $(RELEASE_DIR)/reduction_model.o
+
+$(addprefix $(CONTAINMENT_DIR)/,observer.o supervisor.o broker.o caller.o worker.o): $(CONTAINMENT_DIR)/%.o: tests/containment/%.c tests/containment/runtime.h $(HEADERS) Makefile | $(CONTAINMENT_DIR) check-tools
+	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_CONTAINMENT_TEST_PROFILE=1 -c "$<" -o "$@"
+
+$(CONTAINMENT_DIR)/observer.elf: $(CONTAINMENT_DIR)/observer.o $(RELEASE_DIR)/terminal_core.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(CONTAINMENT_DIR)/supervisor.elf: $(CONTAINMENT_DIR)/supervisor.o $(RELEASE_DIR)/lifecycle_model.o $(RELEASE_DIR)/reduction_model.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(addprefix $(CONTAINMENT_DIR)/,broker.elf caller.elf): $(CONTAINMENT_DIR)/%.elf: $(CONTAINMENT_DIR)/%.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(addprefix $(CONTAINMENT_DIR)/,worker_a.elf worker_b.elf): $(CONTAINMENT_DIR)/worker.o
+	"$(ZIG)" cc $(RELEASE_FLAGS) $^ -L"$(RELEASE_SDK_BOARD)/lib" -Wl,-T,"$(RELEASE_SDK_BOARD)/lib/microkit.ld" -Wl,--build-id=none -lmicrokit -o "$@"
+
+$(CONTAINMENT_DIR)/containment-test.img: $(addprefix $(CONTAINMENT_DIR)/,observer.elf supervisor.elf broker.elf caller.elf worker_a.elf worker_b.elf) $(RELEASE_DIR)/serial.elf system/containment-test.system | check-system
+	"$(MICROKIT_SDK)/bin/microkit" system/containment-test.system --search-path "$(CONTAINMENT_DIR)" "$(RELEASE_DIR)" --board $(BOARD) --config release -o "$@" -r "$(CONTAINMENT_DIR)/report.txt"
+
+containment-image: $(CONTAINMENT_DIR)/containment-test.img
+
+containment-smoke: containment-image
+	$(PYTHON) tools/containment_boot_test.py --qemu "$(QEMU)" --image "$(CONTAINMENT_DIR)/containment-test.img" --log "$(CONTAINMENT_DIR)/boot.log"
+
+containment-smoke-saved: verify-artifacts
+	$(PYTHON) tools/containment_boot_test.py --qemu "$(QEMU)" --image artifacts/containment-test.img --log "$(BUILD_DIR)/saved-containment-boot.log"
 
 $(addprefix $(LIFECYCLE_DIR)/,controller.o supervisor.o broker.o): $(LIFECYCLE_DIR)/%.o: tests/lifecycle/%.c tests/lifecycle/runtime.h $(HEADERS) Makefile | $(LIFECYCLE_DIR) check-tools
 	"$(ZIG)" cc $(RELEASE_FLAGS) -DTCS_LIFECYCLE_TEST_PROFILE=1 -c "$<" -o "$@"
